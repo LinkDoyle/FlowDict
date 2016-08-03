@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="dict.png">res/dict.png</file>
+        <file alias="dict.ico">res/dict.ico</file>
+    </qresource>
+</RCC>
