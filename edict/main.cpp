@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+ï»¿#include "mainwindow.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QTranslator>
@@ -6,8 +6,8 @@
 int main(int argc, char* argv[]) {
   Config& config = Config::Get();
   if (!config.load("config.json")) {
-    QMessageBox::warning(nullptr, QStringLiteral("´íÎó"),
-                         QStringLiteral("¶ÁÈ¡ÅäÖÃÎÄ¼ş config.json Ê§°Ü£¡"));
+    QMessageBox::warning(nullptr, QStringLiteral("é”™è¯¯"),
+                         QStringLiteral("è¯»å–é…ç½®æ–‡ä»¶ config.json å¤±è´¥ï¼"));
 	return -1;
   }
   QApplication app(argc, argv);

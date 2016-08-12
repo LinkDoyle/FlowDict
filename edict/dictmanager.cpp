@@ -67,9 +67,8 @@ void DictManager::on_buttonBox_accepted() {
 }
 
 
-void DictManager::on_tableWidget_cellClicked(int row, int column)
+void DictManager::on_tableWidget_cellClicked(int row, int)
 {
-  ui->tableWidget->selectionMode()
   MDict::MdictParser parser;
   const QString& path = ui->tableWidget->item(row, 2)->text();
   if (!parser.open(path)) {
