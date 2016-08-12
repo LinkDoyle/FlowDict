@@ -6,15 +6,20 @@
 
 class Config {
  public:
+  static Config& Get();
+
   struct Dictionary {
-    QString path;
+    Dictionary();
+    Dictionary(const QString& title, const QString& type, const QString& path);
+    bool operator==(const Dictionary& rhs) const;
     QString title;
     QString type;
+    QString path;
   };
   Config(const Config& rhs) = delete;
   Config& operator=(const Config& rhs) = delete;
   ~Config();
-  static Config& Get();
+
   bool load(const QString& filename);
   bool dump(const QString& filename) const;
   QVector<Dictionary>& getDictionaries();

@@ -10,7 +10,7 @@
 
 #include "dialogabout.h"
 #include "dictmanager.h"
-#include "MdictParser.h"
+#include "dictionary.h"
 #include "ConfigParser.h"
 
 MainWindow::MainWindow(QWidget* parent)
@@ -23,18 +23,7 @@ MainWindow::MainWindow(QWidget* parent)
           &MainWindow::on_dictWebPage_linkClicked);
   ui->webEngineView->setPage(dictWebPage_);
 
-  Config& config = Config::Get();
-  if (!config.load("config.json"))
-    QMessageBox::warning(this, QStringLiteral("警告"),
-                         QStringLiteral("读取配置文件 config.json 失败!"));
-  for (const auto& dict : config.getDictionaries()) {
-    if (!reader_.loadFile(dict.path)) {
-      QMessageBox::warning(
-          this, QStringLiteral("警告"),
-          QStringLiteral("读取词典 \"%1\" 失败!").arg(dict.path));
-    }
-    break;
-  }
+  Dictionary::Load(this);
 }
 
 MainWindow::~MainWindow() {
@@ -79,7 +68,9 @@ void MainWindow::on_comboBox_currentIndexChanged(const QString& text) {
   time.start();
 
   QString article;
-  reader_.getArticleText(text, article);
+  for (const auto& dict : Dictionary::Get()) {
+	  dict->getArticleText(text, article);
+  }
   QString html = "<html><body>";
   html += article;
   html += "</body></html>";

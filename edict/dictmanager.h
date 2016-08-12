@@ -19,7 +19,9 @@ class DictManager : public QDialog {
 
   void on_buttonBox_accepted();
 
- private:
+  void on_tableWidget_cellClicked(int row, int column);
+
+private:
   Ui::DictManager *ui;
 };
 

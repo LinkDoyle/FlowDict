@@ -1,7 +1,5 @@
 #include "dictwebpage.h"
 
-#include "config.h"
-
 DictWebPage::DictWebPage() {}
 
 bool DictWebPage::acceptNavigationRequest(const QUrl &url,

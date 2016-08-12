@@ -75,3 +75,5 @@ Thumbs.db
 /build/*
 /tests/*
 /etc/*
+/thirdparty/libs
+/thirdparty/zlib-1.2.8

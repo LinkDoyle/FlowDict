@@ -1,6 +1,7 @@
-#ifndef DARTRS_H
-#define DARTRS_H
+#ifndef _DATRIE_HPP_
+#define _DATRIE_HPP_
 
+#include <cstdio>
 #include <vector>
 #include <cassert>
 #include <cstring>
@@ -19,215 +20,221 @@ public:
 */
 
 template <typename CHAR, class Alphabet>
-class DATrie {
+class DATrieBase {
  public:
-  DATrie() : size_(16), tailsize_(16), pos_(0) {
+  DATrieBase()
+      : size_(0),
+        tailsize_(0),
+        pos_(0),
+        base_(nullptr),
+        check_(nullptr),
+        tail_(nullptr) {}
+  ~DATrieBase(){};
+  size_t getDataSize() const { return size_ * 2 + tailsize_; }
+  void print_memory() {
+    printf("index\tbase\tcheck\tch\ttail\n");
+    for (int i = size_; i >= 0; --i) {
+      if (base_[i - 1] != 0 || check_[i - 1] != 0) {
+        for (size_t j = 1; j <= i; ++j) {
+          if (base_[j - 1] || check_[j - 1]) {
+            int x = j - 1 - base_[check_[j - 1] - 1];
+            printf("%zd\t%d\t%d\t%c", j, base_[j - 1], check_[j - 1],
+                   x == 0 ? '\2' : Alphabet::toChar(x - 1));
+            if (base_[j - 1] < 0) printf("\t%s", tail_ - base_[j - 1] - 1);
+            putchar('\n');
+          }
+        }
+        break;
+      }
+    }
+  }
+
+ protected:
+  uint32_t size_;
+  uint32_t tailsize_;
+  int32_t pos_;
+  int32_t* base_;
+  int32_t* check_;
+  CHAR* tail_;
+  // return value must greater than 0
+  uint32_t getIndex(CHAR c) const {
+    assert(c == 0 || Alphabet::toIndex(c) < (uint32_t)-2);
+    assert(c == 0 || Alphabet::toIndex(c) < Alphabet::end());
+    return c == 0 ? 1 : Alphabet::toIndex(c) + 2;
+  }
+};
+
+template <typename CHAR, class Alphabet>
+class DATrieReader;
+template <typename CHAR, class Alphabet>
+class DATrieWriter;
+
+template <typename CHAR, class Alphabet>
+class DATrieWriter : public DATrieBase<CHAR, Alphabet> {
+ public:
+  DATrieWriter() {
+    size_ = 16;
+    tailsize_ = 16;
     base_ = new int[size_];
     memset(base_, 0, sizeof(*base_) * size_);
     check_ = new int[size_];
     memset(check_, 0, sizeof(*check_) * size_);
     tail_ = new CHAR[tailsize_];
-
     base_[0] = 1;
   }
-  ~DATrie() {
+  ~DATrieWriter() {
     if (base_) delete base_;
     if (check_) delete check_;
     if (tail_) delete tail_;
   }
-  int retrieve(const CHAR *word) {
-    uint32_t unused;
-    return retrieve(word, unused);
-  }
-  // return the position to data,
-  // word ends with a null terminator,
-  // return the data using the parameter data.
-  int retrieve(const CHAR *word, uint32_t &data) {
-    const CHAR *p = word;
-    int state = 1;
-    while (base(state) > 0) {
-      int next = base(state) + getIndex(*p++);
-      if (check(next) != state) return -1;
-      state = next;
-    }
-    int pos = -base(state) - 1;
-
-    // there is no remaining string in the tail_.
-    if (*(p - 1) == 0) return pos;
-
-    // check the remaining string.
-    for (;;) {
-      if (tail_[pos] != *p) return -1;
-      if (tail_[pos] == 0 && *p == 0) {
-        data = *reinterpret_cast<uint32_t *>(tail_ + pos + 1);
-        return pos + 1;
-      }
-      ++pos;
-      ++p;
-    }
-  }
-
   // word ends with a null terminator.
-  void insert(const CHAR *word, uint32_t data = 0) {
-    const CHAR *p = word;
-    int state = 1;
-    for (;;) {
-      int base_value = base(state);
-
-      if (base_value < 0) {
-        // Case 3: insertion, when a collision occurs
-        int temp = -base_value;
-        CHAR *q = tail_ + temp - 1;
-
-        // collect the common prefix
-        while (*p == *q) {
-          list_.clear();
-          list_.push_back(*p);
-          base(state) = x_check(list_);
-          int next_state = base(state) + getIndex(*p);
-          check(next_state) = state;
-          state = next_state;
-          ++p, ++q;
-        }
-        list_.clear();
-        list_.push_back(*p);
-        list_.push_back(*q);
-        int candidate = x_check(list_);
-        base(state) = candidate;
-
-        // move the remaining string in tail_.
-        {
-          int next_state = candidate + getIndex(*q++);
-          base(next_state) = -temp;
-          check(next_state) = state;
-          CHAR *src = q;
-          CHAR *dst = tail_ + temp - 1;
-          if (*(q - 1)) {
-            while (*src) *dst++ = *src++;
-            *dst++ = *src++;
-          }
-          *reinterpret_cast<uint32_t *>(dst++) =
-              *reinterpret_cast<uint32_t *>(src++);
-        }
-
-        // for the remaining string of the word
-        {
-          int next_state = candidate + getIndex(*p++);
-          base(next_state) = -pos_ - 1;
-          check(next_state) = state;
-          write_tail(p, data);
-        }
-        return;
-      } else {
-        int next = base_value + getIndex(*p);
-        int check_value = check(next);
-
-        if (check_value == 0) {
-          // Case 1 and 2: insert without any collisions.
-          base_[next - 1] = -(pos_ + 1);
-          check_[next - 1] = state;
-          write_tail((*p ? p + 1 : nullptr), data);
-          return;
-        } else if (check_value != state) {
-          // Case 4: insertion, when a new word is inserted with a collision
-
-          list_.clear();
-          if (check(base_value + 1) == state)
-            list_.push_back(0);  // add '\0' to the list
-          for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
-               ++index) {
-            if (check(base_value + index + 2) == state)
-              list_.push_back(Alphabet::toChar(index));
-          }
-
-          list1_.clear();
-          if (check(base(check_value) + 1) == check_value)
-            list1_.push_back(0);  // add '\0' to the list
-          for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
-               ++index) {
-            if (check(base(check_value) + index + 2) == check_value)
-              list1_.push_back(Alphabet::toChar(index));
-          }
-
-          int temp_base, candidate;
-          if (list_.size() + 1 < list1_.size()) {
-            temp_base = base_value;
-            candidate = x_check(list_);
+  void insert(const CHAR* word, uint32_t data = 0) {
+    const CHAR* p = word - 1;
+    int s = 1;
+    int t;
+    do {
+      ++p;
+      t = base(s) + getIndex(*p);
+      if (check(t) != s) {
+        if (check(t) != 0) {
+          // resolve collision
+          std::vector<CHAR> list0;
+          std::vector<CHAR> list1;
+          get_list(s, list0);
+          get_list(check(t), list1);
+          if (list0.size() + 1 < list1.size()) {
+            list0.push_back(*p);
+            s = relocate(s, s, list0, true);
           } else {
-            temp_base = base(check_value);
-            candidate = x_check(list1_);
+            s = relocate(s, check(t), list1, false);
           }
-          const auto &list =
-              (list_.size() + 1 < list1_.size()) ? list_ : list1_;
-          base(check_value) = candidate;
-          for (const auto c : list) {
-            int temp_node1 = temp_base + getIndex(c);
-            int temp_node2 = base(check_value) + getIndex(c);
-            base(temp_node2) = base(temp_node1);
-            check(temp_node2) = check(temp_node1);
-            if (base(temp_node1) > 0) {
-              for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
-                   ++index) {
-                int &check_value = check(base(temp_node1) + index + 2);
-                if (check_value == temp_node1) {
-                  check_value = temp_node2;
-                }
-              }
-            }
-            base(temp_node1) = 0;
-            check(temp_node1) = 0;
-          }
-
-          // insert the remaining part of new string into tail_.
-          int temp_node = base(state) + getIndex(*p);
-          base(temp_node) = -pos_ - 1;
-          check(temp_node) = state;
-          write_tail((*p ? p + 1 : nullptr), data);
-          return;
         }
+        t = base(s) + getIndex(*p);
+        check(t) = s;
+        base(t) = -pos_ - 1;
+        write_tail((*p ? p + 1 : nullptr), data);
+        return;
+      }
+      if (base(t) < 0) {
+        break;
+      }
+      s = t;
+    } while (*p);
 
+    int old_base_value;
+    CHAR* q = nullptr;
+    if (*p) {
+      old_base_value = base(t);
+      q = tail_ - old_base_value - 1;
+    }
+    if (*p == 0 || strcmp(p + 1, q) == 0) return;
+    if (base(t) != 0) {
+      // tail insert
+      s = t;
+      p = p + 1;
+      std::vector<CHAR> list{0, 0};
+
+      while (*p == *q) {
+        list[0] = *p;
+        base(s) = x_check(list);
+        t = base(s) + getIndex(*p);
+        check(t) = s;
+        s = t;
         ++p;
-        state = next;
+        ++q;
+      }
+      list[0] = *p;
+      list[1] = *q;
+      base(s) = x_check(list);
+
+      // move the remaining string in tail_.
+      {
+        int t = base(s) + getIndex(*q);
+        check(t) = s;
+        base(t) = old_base_value;
+        CHAR* src = q + 1;
+        CHAR* dst = tail_ - old_base_value - 1;
+        if (*q) {
+          while (*src) *dst++ = *src++;
+          *dst++ = *src++;
+        }
+        *reinterpret_cast<uint32_t*>(dst) = *reinterpret_cast<uint32_t*>(src);
+      }
+
+      // for the remaining part of the word.
+      {
+        int t = base(s) + getIndex(*p);
+        check(t) = s;
+        base(t) = -pos_ - 1;
+        write_tail((*p ? p + 1 : nullptr), data);
       }
     }
   }
-  void print_memory() {
-    printf("index\tbase\tcheck\n");
-    for (size_t i = 1; i <= size_; ++i) {
-      printf("%d\t%d\t%d\n", i, base_[i - 1], check_[i - 1]);
-    }
-    printf("index\ttail\n");
-    for (int i = 0; i < pos_; ++i) {
-      printf("%d\t%c\n", i + 1, tail_[i]);
-    }
+
+  int dumpToFile(const char* filename, const char* extraData,
+                 uint64_t extraSize) const {
+    FILE* pFile = fopen(filename, "wb");
+    if (!pFile) return -1;
+    fwrite(&size_, sizeof(size_), 1, pFile);
+    fwrite(&pos_, sizeof(tailsize_), 1, pFile);
+    fwrite(&pos_, sizeof(pos_), 1, pFile);
+    fwrite(base_, sizeof(*base_), size_, pFile);
+    fwrite(check_, sizeof(*check_), size_, pFile);
+    fwrite(tail_, sizeof(*tail_), pos_, pFile);
+    fwrite(&extraSize, sizeof(extraSize), 1, pFile);
+    fwrite(extraData, 1, extraSize, pFile);
+    fclose(pFile);
+    return 0;
   }
 
- private:
-  size_t size_;
-  size_t tailsize_;
-  int *base_;
-  int *check_;
-  int pos_;
-  CHAR *tail_;
-  std::vector<CHAR> list_;
-  std::vector<CHAR> list1_;
-  // return value must greater than 0
-  uint32_t getIndex(CHAR c) {
-    assert(Alphabet::toIndex(c) < (uint32_t)-2);
-    return c == 0 ? 1 : Alphabet::toIndex(c) + 2;
+ protected:
+  friend class DATrieReader<CHAR, Alphabet>;
+  void get_list(int s, std::vector<CHAR>& list) {
+    if (check(base(s) + 1) == s) list.push_back(0);  // add '\0' to the list
+    for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
+         ++index) {
+      if (check(base(s) + index + 2) == s)
+        list.push_back(Alphabet::toChar(index));
+    }
   }
-  void write_tail(const CHAR *word, uint32_t data) {
-    int word_size = 0;
+  int relocate(int current, int s, std::vector<CHAR>& list, bool isPushed) {
+    int old_base = base(s);
+    base(s) = x_check(list);
+    if (isPushed) list.pop_back();
+    for (const auto ch : list) {
+      int old_node = old_base + getIndex(ch);
+      int new_node = base(s) + getIndex(ch);
+      base(new_node) = base(old_node);
+      check(new_node) = s;
+      if (base(old_node) > 0) {
+        int& check_value = check(base(old_node) + 1);
+        if (check_value == old_node) check_value = new_node;  // copy for '\0'
+        for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
+             ++index) {
+          int& check_value = check(base(old_node) + index + 2);
+          if (check_value == old_node) {
+            check_value = new_node;
+          }
+        }
+      }
+      if (current != s && old_node == current) current = new_node;
+      base(old_node) = 0;
+      check(old_node) = 0;
+    }
+    return current;
+  }
+  void write_tail(const CHAR* word, uint32_t data) {
+    uint32_t word_size = 0;
     if (word) {
-      const CHAR *p = word;
+      const CHAR* p = word;
       while (*p++) ++word_size;
       word_size += 1;  // includes the null terminator
     }
-    size_t needed_size = pos_ + word_size + sizeof(data);
+    uint32_t needed_size = pos_ + word_size + sizeof(data);
     if (needed_size > tailsize_) {
-      size_t new_size = tailsize_ * 2;
+      uint32_t new_size = tailsize_ * 2;
       while (needed_size > new_size) new_size *= 2;
-      CHAR *temp = new CHAR[new_size];
+      CHAR* temp = new CHAR[new_size];
       memcpy(temp, tail_, tailsize_);
       delete tail_;
       tail_ = temp;
@@ -235,20 +242,20 @@ class DATrie {
     }
     memcpy(tail_ + pos_, word, (word_size) * sizeof(CHAR));
     pos_ += word_size;
-    *reinterpret_cast<uint32_t *>(tail_ + pos_) = data;
+    *reinterpret_cast<uint32_t*>(tail_ + pos_) = data;
     pos_ += sizeof(data);
   }
-  void resize(size_t size) {
-    size_t new_size = size_ * 2;
+  void resize(uint32_t size) {
+    uint32_t new_size = size_ * 2;
     while (size > new_size) new_size *= 2;
 
-    int *temp_base = new int[new_size];
+    int* temp_base = new int[new_size];
     memcpy(temp_base, base_, size_ * sizeof(*base_));
     memset(temp_base + size_, 0, (new_size - size_) * sizeof(*base_));
     delete base_;
     base_ = temp_base;
 
-    int *temp_check = new int[new_size];
+    int* temp_check = new int[new_size];
     memcpy(temp_check, check_, size_ * sizeof(*check_));
     memset(temp_check + size_, 0, (new_size - size_) * sizeof(*check_));
     delete check_;
@@ -257,21 +264,116 @@ class DATrie {
     size_ = new_size;
   }
   // index = 1...size_
-  int &base(size_t index) {
+  int32_t& base(uint32_t index) {
     if (index > size_) resize(index);
     return base_[index - 1];
   }
   // index = 1...size_
-  int &check(size_t index) {
+  int32_t& check(uint32_t index) {
     if (index > size_) resize(index);
     return check_[index - 1];
   }
-  size_t x_check(const std::vector<CHAR> &list) {
+  int x_check(const std::vector<CHAR>& list) {
+    assert(!list.empty());
     int q = 1;
-    for (const auto a : list) {
-      while (check(q + getIndex(a)) != 0) ++q;
-    }
+    int i = 0;
+    do {
+      if (check(q + getIndex(list[i++])) != 0) {
+        ++q;
+        i = 0;
+        continue;
+      }
+    } while (i != list.size());
     return q;
   }
 };
+
+template <typename CHAR, class Alphabet>
+class DATrieReader : public DATrieBase<CHAR, Alphabet> {
+ public:
+  DATrieReader() {}
+  int loadFromMemory(CHAR* data) {
+    CHAR* pos = data;
+    size_ = *reinterpret_cast<uint32_t*>(pos);
+    pos += sizeof(uint32_t);
+    tailsize_ = *reinterpret_cast<uint32_t*>(pos);
+    pos += sizeof(uint32_t);
+    pos_ = *reinterpret_cast<uint32_t*>(pos);
+    pos += sizeof(uint32_t);
+
+    base_ = reinterpret_cast<int32_t*>(pos);
+    pos += size_ * sizeof(int32_t);
+    check_ = reinterpret_cast<int32_t*>(pos);
+    pos += size_ * sizeof(int32_t);
+    tail_ = pos;
+    pos += tailsize_ * sizeof(CHAR);
+
+    extraSize_ = *reinterpret_cast<uint64_t*>(pos);
+    pos += sizeof(extraSize_);
+    extraData_ = pos;
+    pos += extraSize_;
+    return 0;
+  }
+  int loadFromWriter(const DATrieWriter<CHAR, Alphabet>& writer) {
+    size_ = writer.size_;
+    tailsize_ = writer.tailsize_;
+    pos_ = writer.pos_;
+    base_ = writer.base_;
+    check_ = writer.check_;
+    tail_ = writer.tail_;
+
+    extraSize_ = 0;
+    extraData_ = 0;
+    return 1;
+  }
+  int retrieve(const CHAR* word) const {
+    uint32_t unused;
+    return retrieve(word, unused);
+  }
+  // return the position to data,
+  // word ends with a null terminator,
+  // return the data using the parameter data.
+  int retrieve(const CHAR* word, uint32_t& data) const {
+    const CHAR* p = word - 1;
+    int s = 1;
+    int t;
+    do {
+      ++p;
+      t = base(s) + getIndex(*p);
+      if (check(t) != s) return -1;
+      if (base(t) < 0) break;
+      s = t;
+    } while (*p);
+
+    CHAR* q = nullptr;
+    int pos = -base(t) - 1;
+    if (*p) {
+      q = tail_ + pos;
+      if (strcmp(p + 1, q) == 0) {
+        int offset = pos + strlen(q) + 1;
+        data = *reinterpret_cast<uint32_t*>(tail_ + offset);
+        return offset;
+      }
+    } else {
+      data = *reinterpret_cast<uint32_t*>(tail_ + pos);
+      return pos;
+    }
+    return -1;
+  }
+  uint64_t getExtraSize() const { return extraSize_; }
+  const char* getExtraData() const { return extraData_; }
+
+ protected:
+  int32_t base(uint32_t index) const {
+    if (index > size_) return 0;
+    return base_[index - 1];
+  }
+  int32_t check(uint32_t index) const {
+    if (index > size_) return 0;
+    return check_[index - 1];
+  }
+  uint64_t extraSize_;
+  const char* extraData_;
+};
+
 #endif

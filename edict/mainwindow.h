@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 #include "dictwebpage.h"
-#include "mdictparser.h"
+#include "mdict.h"
 
 namespace Ui {
 class MainWindow;
@@ -26,7 +26,6 @@ class MainWindow : public QMainWindow {
  private:
   Ui::MainWindow *ui;
   DictWebPage *dictWebPage_;
-  Mdict::MdictReader reader_;
 };
 
 #endif  // MAINWINDOW_H
