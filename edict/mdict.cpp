@@ -14,10 +14,14 @@ namespace MDict {
 
 class Alphabet {
  public:
-  static uint32_t toIndex(char c) { return c - ' '; }
+  static uint32_t toIndex(char c) {
+    assert(c >= ' ');
+    assert(static_cast<unsigned char>(c) < 255);
+    return static_cast<unsigned char>(c) - ' ';
+  }
   static char toChar(uint32_t index) { return index + ' '; }
   static uint32_t begin() { return 0; }
-  static uint32_t end() { return '~' - ' ' + 1; }
+  static uint32_t end() { return static_cast<unsigned char>(0xFF) - ' ' + 1; }
 };
 
 class MDictReader : public Dictionary::IDictionary {
@@ -38,6 +42,7 @@ class MDictReader : public Dictionary::IDictionary {
   QString encoding_;
   uchar *index_cache_address_;
   DATrieReader<char, Alphabet> index_reader_;
+  MdictParser::StyleSheets styleSheets_;
   const MdictParser::RecordInfo *recordInfos_;
 };
 
@@ -53,16 +58,14 @@ class ArticleHandler : public MDict::MdictParser::RecordHandler {
 
   virtual void handleRecord(QString const &headWord,
                             MDict::MdictParser::RecordInfo const &recordInfo) {
-    QString wordTrimmed = headWord.trimmed();
     QVector<unsigned int> v = headWord.toUcs4();
-
     // Fix for QString instance which contains non-BMP characters
     // Qt will created unexpected null characters may confuse btree indexer.
     // Related: https://bugreports.qt-project.org/browse/QTBUG-25536
     int n = v.size();
     while (n > 0 && v[n - 1] == 0) n--;
     if (n != v.size()) v.resize(n);
-    QString keyword = QString::fromUcs4(v.constData(), v.size());
+    QString keyword = QString::fromUcs4(v.constData(), v.size()).trimmed();
 
     writer_.insert(keyword.toUtf8().constData(), recordInfos_.size());
     recordInfos_.push_back(recordInfo);
@@ -114,6 +117,7 @@ bool MDictReader::loadFile(const QString &filename,
   recordInfos_ = reinterpret_cast<const MdictParser::RecordInfo *>(
       index_reader_.getExtraData());
 
+  styleSheets_ = std::move(parser.styleSheets());
   info_.path = filename;
   info_.title = parser.title();
   info_.type = "mdx";
@@ -135,6 +139,8 @@ void MDictReader::getArticleText(const QString &headword, QString &text) const {
   text = MdictParser::toUtf16(
       encoding_, decompressed.constData() + recordInfo.recordOffset,
       recordInfo.recordSize);
+
+  text = MdictParser::substituteStylesheet(text, styleSheets_);
 }
 
 QSharedPointer<Dictionary::IDictionary> makeDirectory(

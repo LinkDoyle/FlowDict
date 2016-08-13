@@ -6,6 +6,7 @@
 #include <QMessageBox>
 
 #include "ConfigParser.h"
+#include "dictionary.h"
 #include "mdictparser.h"
 
 DictManager::DictManager(QWidget* parent)
@@ -54,16 +55,15 @@ void DictManager::on_toolButton_clicked() {
 void DictManager::on_buttonBox_accepted() {
   Config& config = Config::Get();
   QVector<Config::Dictionary>& dictionaries = config.getDictionaries();
+  dictionaries.clear();
   QTableWidget* tableWiget = ui->tableWidget;
   for (int i = 0; i < tableWiget->rowCount(); ++i) {
     const QString& title = tableWiget->item(i, 0)->text();
     const QString& type = tableWiget->item(i, 1)->text();
     const QString& path = tableWiget->item(i, 2)->text();
-    Config::Dictionary dict(title, type, path);
-    if (std::find(dictionaries.begin(), dictionaries.end(), dict) ==
-        dictionaries.end()) {
-    }
+    dictionaries.push_back(Config::Dictionary(title, type, path));
   }
+  Dictionary::Load(this);
 }
 
 

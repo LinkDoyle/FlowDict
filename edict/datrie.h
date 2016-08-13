@@ -2,10 +2,10 @@
 #define _DATRIE_HPP_
 
 #include <cstdio>
-#include <vector>
 #include <cassert>
 #include <cstring>
-
+#include <vector>
+#include <string>
 /*
 template<typename CHAR>
 class IAlphabet
@@ -29,7 +29,7 @@ class DATrieBase {
         base_(nullptr),
         check_(nullptr),
         tail_(nullptr) {}
-  ~DATrieBase(){};
+  ~DATrieBase() {}
   size_t getDataSize() const { return size_ * 2 + tailsize_; }
   void print_memory() {
     printf("index\tbase\tcheck\tch\ttail\n");
@@ -73,8 +73,8 @@ template <typename CHAR, class Alphabet>
 class DATrieWriter : public DATrieBase<CHAR, Alphabet> {
  public:
   DATrieWriter() {
-    size_ = 16;
-    tailsize_ = 16;
+    size_ = 1024;
+    tailsize_ = 1024;
     base_ = new int[size_];
     memset(base_, 0, sizeof(*base_) * size_);
     check_ = new int[size_];
@@ -182,7 +182,7 @@ class DATrieWriter : public DATrieBase<CHAR, Alphabet> {
     fwrite(check_, sizeof(*check_), size_, pFile);
     fwrite(tail_, sizeof(*tail_), pos_, pFile);
     fwrite(&extraSize, sizeof(extraSize), 1, pFile);
-    fwrite(extraData, 1, extraSize, pFile);
+    fwrite(extraData, sizeof(*extraData), extraSize, pFile);
     fclose(pFile);
     return 0;
   }
@@ -362,6 +362,9 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
   }
   uint64_t getExtraSize() const { return extraSize_; }
   const char* getExtraData() const { return extraData_; }
+
+  //std::vector<std::basic_string<CHAR>> keysWithPrefix(const CHAR* s, int max = -1);
+  //std::vector<std::basic_string<CHAR>> keysThatMatch(const CHAR* s, int max = -1);
 
  protected:
   int32_t base(uint32_t index) const {

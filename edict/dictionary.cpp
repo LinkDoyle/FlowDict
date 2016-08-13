@@ -2,8 +2,9 @@
 #include <QWidget>
 #include <QSharedPointer>
 #include <QMessageBox>
-#include <QCoreApplication>
+#include <QApplication>
 #include <QProgressDialog>
+#include <QTime>
 #include "ConfigParser.h"
 #include "mdict.h"
 
@@ -12,23 +13,30 @@ static QVector<QSharedPointer<IDictionary>> Dictionaries;
 QVector<QSharedPointer<IDictionary>>& Get() { return Dictionaries; }
 
 void Load(QWidget* parent) {
+  const auto config_dictionaries = Config::Get().getDictionaries();
   Dictionaries.clear();
   QProgressDialog* dialog = nullptr;
-  for (const Config::Dictionary& d : Config::Get().getDictionaries()) {
+  QTime time;
+  time.start();
+  for (const Config::Dictionary& d : config_dictionaries) {
     QSharedPointer<Dictionary::IDictionary> dict =
         MDict::makeDirectory(d.path, [&](int currentCount, int totalCount) {
           if (!dialog) {
             dialog = new QProgressDialog;
             dialog->setWindowFlags(Qt::Window | Qt::WindowTitleHint);
+            dialog->setMinimumWidth(400);
             dialog->setWindowTitle(QStringLiteral("Flow Dict"));
-            dialog->setLabelText(
-                QStringLiteral("请稍后，正在更新词典索引缓存..."));
             dialog->setWindowModality(Qt::WindowModal);
-            dialog->setRange(0, 100);
+            dialog->setRange(0, 101);
             dialog->setCancelButton(nullptr);
             dialog->show();
           }
+          dialog->setLabelText(
+              QStringLiteral(
+                  "正在更新词典\"%1\"的索引缓存（当前已花时：%2 s）...")
+                  .arg(d.title, QString().setNum(time.elapsed() / 1000.f, 'f', 1)));
           dialog->setValue(currentCount * 100 / totalCount);
+          QApplication::processEvents();
         });
     if (dict) {
       Dictionaries.push_back(dict);

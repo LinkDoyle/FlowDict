@@ -238,14 +238,9 @@ quint32 MdictParser::readU8OrU16(QDataStream &in, bool isU16) {
 bool MdictParser::open(const QString &filename) {
   filename_ = filename;
   file_ = new QFile(filename);
-
   if (file_.isNull() || !file_->exists()) return false;
-
   if (!file_->open(QIODevice::ReadOnly)) return false;
   QDataStream in(file_);
-
-  qDebug("Open File %s", filename_);
-
   in.setByteOrder(QDataStream::BigEndian);
   if (!readHeader(in)) return false;
   if (!readHeadWordBlockInfos(in)) return false;
@@ -359,9 +354,6 @@ bool MdictParser::readHeader(QDataStream &in) {
   QString headerText =
       toUtf16("UTF-16LE", headerTextUtf16.constData(), headerTextUtf16.size());
   headerTextUtf16.clear();
-
-  qDebug() << headerText;
-
   QDomNamedNodeMap headerAttributes = parseHeaderAttributes(headerText);
 
   encoding_ = headerAttributes.namedItem("Encoding").toAttr().value();
@@ -555,5 +547,30 @@ MdictParser::BlockInfoVector MdictParser::decodeHeadWordBlockInfo(
   }
 
   return headWordBlockInfos;
+}
+
+QString &MdictParser::substituteStylesheet(
+    QString &article, MdictParser::StyleSheets const &styleSheets) {
+  QRegExp rx("`(\\d+)`");
+  QString endStyle;
+  int pos = 0;
+
+  while ((pos = rx.indexIn(article, pos)) != -1) {
+    int styleId = rx.cap(1).toInt();
+    StyleSheets::const_iterator iter = styleSheets.find(styleId);
+
+    if (iter != styleSheets.end()) {
+      QString rep = endStyle + iter->second.first;
+      article.replace(pos, rx.cap(0).length(), rep);
+      pos += rep.length();
+      endStyle = iter->second.second;
+    } else {
+      article.replace(pos, rx.cap(0).length(), endStyle);
+      pos += endStyle.length();
+      endStyle = "";
+    }
+  }
+  article += endStyle;
+  return article;
 }
 }
