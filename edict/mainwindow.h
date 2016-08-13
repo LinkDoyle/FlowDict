@@ -26,6 +26,7 @@ class MainWindow : public QMainWindow {
  private:
   Ui::MainWindow *ui;
   DictWebPage *dictWebPage_;
+  QWebChannel *webChannel_;
 };
 
 #endif  // MAINWINDOW_H

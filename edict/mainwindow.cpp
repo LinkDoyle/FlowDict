@@ -7,7 +7,8 @@
 #include <QMessageBox>
 #include <QString>
 #include <QCloseEvent>
-
+#include <QRegExp>
+#include <QWebChannel>
 #include "dialogabout.h"
 #include "dictmanager.h"
 #include "dictionary.h"
@@ -16,19 +17,22 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
-      dictWebPage_(new DictWebPage) {
+      dictWebPage_(new DictWebPage),
+      webChannel_(new QWebChannel) {
   ui->setupUi(this);
 
   connect(dictWebPage_, &DictWebPage::linkClicked, this,
           &MainWindow::on_dictWebPage_linkClicked);
-  ui->webEngineView->setPage(dictWebPage_);
-
+  ui->webEngineView->setUrl(QUrl("qrc:/html/cover.htm"));
+  dictWebPage_->setUrl(QUrl("qrc:/html/page.htm"));
+  dictWebPage_->setWebChannel(webChannel_);
   Dictionary::Load(this);
 }
 
 MainWindow::~MainWindow() {
   delete ui;
   delete dictWebPage_;
+  delete webChannel_;
 }
 
 void MainWindow::on_action_A_triggered() {
@@ -63,19 +67,22 @@ void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
 }
 
 void MainWindow::on_comboBox_currentIndexChanged(const QString& text) {
+  ui->webEngineView->setPage(dictWebPage_);
   statusBar()->showMessage(QStringLiteral("查询中..."));
   QTime time;
   time.start();
 
+  dictWebPage_->runJavaScript(QStringLiteral("clearArticles();"));
+  QRegExp rx(R"(\\([\s\S])|(["\r\n]))");
   QString article;
   for (const auto& dict : Dictionary::Get()) {
-	  dict->getArticleText(text, article);
+    article.clear();
+    dict->getArticleText(text, article);
+    article.replace(rx, "\\\\1\\2");
+    //if (article[article.size() - 1] == '\0') article.resize(article.size() - 1);
+    dictWebPage_->runJavaScript(QStringLiteral("addArticle(\"%1\", \"%2\");")
+                                    .arg(dict->info().title, article));
   }
-  QString html = "<html><body>";
-  html += article;
-  html += "</body></html>";
-  dictWebPage_->setHtml(html);
-
   QString info = QString("Time used:%1ms").arg(time.elapsed());
   statusBar()->showMessage(info);
 }
