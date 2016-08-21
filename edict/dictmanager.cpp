@@ -66,9 +66,7 @@ void DictManager::on_buttonBox_accepted() {
   Dictionary::Load(this);
 }
 
-
-void DictManager::on_tableWidget_cellClicked(int row, int)
-{
+void DictManager::on_tableWidget_cellClicked(int row, int) {
   MDict::MdictParser parser;
   const QString& path = ui->tableWidget->item(row, 2)->text();
   if (!parser.open(path)) {
@@ -82,5 +80,13 @@ void DictManager::on_tableWidget_cellClicked(int row, int)
     info += QStringLiteral("<center><h1>描述</h1></center>");
     info += parser.description();
     ui->textBrowser->setText(info);
+  }
+}
+
+void DictManager::on_toolButton_2_clicked() {
+  QTableWidget* tableWidget = ui->tableWidget;
+  QModelIndexList selections = tableWidget->selectionModel()->selectedRows();
+  for (int i = 0; i < selections.count(); ++i) {
+    tableWidget->removeRow(selections.at(i).row());
   }
 }
