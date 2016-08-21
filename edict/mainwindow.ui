@@ -57,36 +57,6 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeWidget" name="treeWidget">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>120</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
-       </property>
-       <attribute name="headerVisible">
-        <bool>false</bool>
-       </attribute>
-       <column>
-        <property name="text">
-         <string/>
-        </property>
-       </column>
-       <item>
-        <property name="text">
-         <string>词典</string>
-        </property>
-       </item>
-      </widget>
       <widget class="QWebEngineView" name="webEngineView" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -96,7 +66,7 @@
        </property>
        <property name="url" stdset="0">
         <url>
-         <string>about:blank</string>
+         <string>qrc:/html/cover.htm</string>
         </url>
        </property>
       </widget>

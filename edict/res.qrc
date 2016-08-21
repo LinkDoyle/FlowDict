@@ -12,6 +12,7 @@
         <file alias="bootstrap.min.css">res/html/css/bootstrap.min.css</file>
         <file alias="bootstrap-theme.min.css">res/html/css/bootstrap-theme.min.css</file>
         <file alias="cover.css">res/html/css/cover.css</file>
+        <file alias="simple-sidebar.css">res/html/css/simple-sidebar.css</file>
     </qresource>
     <qresource prefix="/html/fonts">
         <file alias="glyphicons-halflings-regular.eot">res/html/fonts/glyphicons-halflings-regular.eot</file>

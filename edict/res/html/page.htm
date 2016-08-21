@@ -8,17 +8,35 @@
     <title>Flow Dict Page</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/page.css" rel="stylesheet">
+    <link href="css/simple-sidebar.css" rel="stylesheet">
 </head>
 
-<body style="padding-top: 30px;">
-    <div class="container-fluid">
-        <div id="container" class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+<body>
+    <div id="wrapper" class="">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a href="#">
+                        Flow Dict
+                    </a>
+                </li>
+            </ul>
         </div>
+        <!-- /#sidebar-wrapper -->
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div id="container" class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
     </div>
     <template id="tpl-article">
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab">
-              <h4 class="panel-title">
+            <div id="article_heading{{index}}" class="panel-heading" role="tab">
+                <h4 class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#accordion" data-target="#article{{index}}">{{name}}</a>
               </h4>
             </div>

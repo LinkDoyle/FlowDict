@@ -23,7 +23,6 @@ MainWindow::MainWindow(QWidget* parent)
 
   connect(dictWebPage_, &DictWebPage::linkClicked, this,
           &MainWindow::on_dictWebPage_linkClicked);
-  ui->webEngineView->setUrl(QUrl("qrc:/html/cover.htm"));
   dictWebPage_->setUrl(QUrl("qrc:/html/page.htm"));
   dictWebPage_->setWebChannel(webChannel_);
   Dictionary::Load(this);
@@ -68,19 +67,18 @@ void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
 
 void MainWindow::on_comboBox_currentIndexChanged(const QString& text) {
   ui->webEngineView->setPage(dictWebPage_);
+  dictWebPage_->runJavaScript(QStringLiteral("clearArticles();"));
   statusBar()->showMessage(QStringLiteral("查询中..."));
   QTime time;
   time.start();
 
-  dictWebPage_->runJavaScript(QStringLiteral("clearArticles();"));
   QRegExp rx(R"(\\([\s\S])|(["\r\n]))");
   QString article;
   for (const auto& dict : Dictionary::Get()) {
     article.clear();
     dict->getArticleText(text, article);
     article.replace(rx, "\\\\1\\2");
-    //if (article[article.size() - 1] == '\0') article.resize(article.size() - 1);
-    dictWebPage_->runJavaScript(QStringLiteral("addArticle(\"%1\", \"%2\");")
+    dictWebPage_->runJavaScript(QStringLiteral("addArticle(\"%1\",\"%2\");")
                                     .arg(dict->info().title, article));
   }
   QString info = QString("Time used:%1ms").arg(time.elapsed());
