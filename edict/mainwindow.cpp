@@ -11,6 +11,8 @@
 #include <QWebEngineView>
 #include <QWebChannel>
 #include <QMenu>
+#include <QCompleter>
+#include <QStringListModel>
 
 #include "dialogabout.h"
 #include "dictmanager.h"
@@ -135,4 +137,14 @@ void MainWindow::on_systemTrayIcon_activated(
     default:
       break;
   }
+}
+
+void MainWindow::on_comboBox_editTextChanged(const QString &text)
+{
+    const auto& dictionaries = Dictionary::Get();
+    if(dictionaries.isEmpty()) return;
+    QStringList keys = dictionaries[0]->keysWithPrefix(text, 15);
+    QCompleter *completer = new QCompleter(keys, this);
+    completer->setModel(new QStringListModel(keys, this));
+    ui->comboBox->setCompleter(completer);
 }

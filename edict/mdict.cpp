@@ -32,6 +32,7 @@ class MDictReader : public Dictionary::IDictionary {
   virtual const Info &info() const override { return info_; }
   virtual ~MDictReader();
 
+  virtual QStringList keysWithPrefix(const QString &prefix, int max) const override;
   bool loadFile(const QString &filename,
                 std::function<void(int, int)> callback);
 
@@ -143,6 +144,14 @@ void MDictReader::getArticleText(const QString &headword, QString &text) const {
   text = MdictParser::substituteStylesheet(text, styleSheets_);
 }
 
+QStringList MDictReader::keysWithPrefix(const QString &prefix, int max) const {
+  auto keys = index_reader_.keysWithPrefix(prefix.toUtf8().constData(), max);
+  QStringList stringList;
+  for (auto key : keys) {
+    stringList.push_back(QString::fromStdString(key));
+  }
+  return stringList;
+}
 QSharedPointer<Dictionary::IDictionary> makeDirectory(
     const QString &filename, std::function<void(int, int)> callback) {
   QSharedPointer<MDictReader> reader = QSharedPointer<MDictReader>::create();

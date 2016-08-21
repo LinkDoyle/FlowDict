@@ -25,6 +25,7 @@ class IDictionary {
   virtual ~IDictionary() = default;
   virtual void getArticleText(const QString& headword, QString& text) const = 0;
   virtual const Info& info() const = 0;
+  virtual QStringList keysWithPrefix(const QString &prefix, int max = -1) const = 0;
 };
 
 QVector<QSharedPointer<IDictionary>>& Get();

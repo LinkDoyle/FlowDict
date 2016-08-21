@@ -363,10 +363,53 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
   uint64_t getExtraSize() const { return extraSize_; }
   const char* getExtraData() const { return extraData_; }
 
-  //std::vector<std::basic_string<CHAR>> keysWithPrefix(const CHAR* s, int max = -1);
+  std::vector<std::basic_string<CHAR>> keysWithPrefix(const CHAR* prefix,
+                                                      int max = -1) const {
+    std::vector<std::basic_string<CHAR>> v;
+    if (max == 0) return v;
+    if (max > 0) v.reserve(max);
+    const CHAR* p = prefix;
+    int s = 1;
+    int t;
+    while (*p) {
+      t = base(s) + getIndex(*p);
+      if (check(t) != s) return v;
+      s = t;
+      ++p;
+      if (base(s) < 0) {
+        if (strcmp(p, tail_ - base(s) - 1) != 0) {
+          return v;
+        }
+        break;
+      }
+    }
+    collect(s, std::basic_string<CHAR>(prefix), v, max);
+    return v;
+  }
   //std::vector<std::basic_string<CHAR>> keysThatMatch(const CHAR* s, int max = -1);
 
  protected:
+  void collect(int node, std::basic_string<CHAR>& String,
+               std::vector<std::basic_string<CHAR>>& v, int count) const {
+    if (count == v.size()) return;
+    if (base(node) < 0) {
+      const CHAR* q = tail_ - base(node) - 1;
+      v.push_back(String + q);
+      return;
+    }
+    if (check(base(node) + 1) == node) {
+      v.push_back(String);
+    }
+    for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
+         ++index) {
+      int next = base(node) + index + 2;
+      if (check(next) == node) {
+        String.push_back(Alphabet::toChar(index));
+        collect(next, String, v, count);
+        String.pop_back();
+      }
+    }
+  }
   int32_t base(uint32_t index) const {
     if (index > size_) return 0;
     return base_[index - 1];

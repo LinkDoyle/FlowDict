@@ -26,6 +26,7 @@ class MainWindow : public QMainWindow {
   void on_webEngineView_loadFinished(bool);
   void on_comboBox_currentIndexChanged(const QString &);
   void on_systemTrayIcon_activated(QSystemTrayIcon::ActivationReason);
+  void on_comboBox_editTextChanged(const QString &);
 
  private:
   Ui::MainWindow *ui;
