@@ -23,6 +23,7 @@ class MainWindow : public QMainWindow {
   void on_action_A_triggered();
   void on_action_M_triggered();
   void on_dictWebPage_linkClicked(const QUrl &);
+  void on_webEngineView_loadFinished(bool);
   void on_comboBox_currentIndexChanged(const QString &);
   void on_systemTrayIcon_activated(QSystemTrayIcon::ActivationReason);
 

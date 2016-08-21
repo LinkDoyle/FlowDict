@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QTranslator>
+
 #include "ConfigParser.h"
 int main(int argc, char* argv[]) {
   Config& config = Config::Get();
@@ -16,7 +17,5 @@ int main(int argc, char* argv[]) {
   app.installTranslator(&qt);
   app.setStyle("Fusion");
   MainWindow w;
-  w.show();
-
   return app.exec();
 }

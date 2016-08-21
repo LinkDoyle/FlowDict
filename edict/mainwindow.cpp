@@ -8,6 +8,7 @@
 #include <QString>
 #include <QCloseEvent>
 #include <QRegExp>
+#include <QWebEngineView>
 #include <QWebChannel>
 #include <QMenu>
 
@@ -25,6 +26,8 @@ MainWindow::MainWindow(QWidget* parent)
       systemTrayIconMenu_(new QMenu) {
   ui->setupUi(this);
 
+  connect(ui->webEngineView, &QWebEngineView::loadFinished, this,
+          &MainWindow::on_webEngineView_loadFinished);
   connect(dictWebPage_, &DictWebPage::linkClicked, this,
           &MainWindow::on_dictWebPage_linkClicked);
   dictWebPage_->setUrl(QUrl("qrc:/html/page.htm"));
@@ -80,6 +83,13 @@ void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
     pos = ui->comboBox->count() - 1;
   }
   ui->comboBox->setCurrentIndex(pos);
+}
+
+void MainWindow::on_webEngineView_loadFinished(bool)
+{
+  if(ui->webEngineView->url().url() == QStringLiteral("qrc:/html/cover.htm")){
+    this->show();
+  }
 }
 
 void MainWindow::on_comboBox_currentIndexChanged(const QString& text) {
