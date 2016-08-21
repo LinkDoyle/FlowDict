@@ -9,6 +9,8 @@
 #include <QCloseEvent>
 #include <QRegExp>
 #include <QWebChannel>
+#include <QMenu>
+
 #include "dialogabout.h"
 #include "dictmanager.h"
 #include "dictionary.h"
@@ -18,13 +20,26 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       dictWebPage_(new DictWebPage),
-      webChannel_(new QWebChannel) {
+      webChannel_(new QWebChannel),
+      systemTrayIcon_(new QSystemTrayIcon),
+      systemTrayIconMenu_(new QMenu) {
   ui->setupUi(this);
 
   connect(dictWebPage_, &DictWebPage::linkClicked, this,
           &MainWindow::on_dictWebPage_linkClicked);
   dictWebPage_->setUrl(QUrl("qrc:/html/page.htm"));
   dictWebPage_->setWebChannel(webChannel_);
+
+  systemTrayIconMenu_->addMenu(ui->menu);
+  systemTrayIconMenu_->addMenu(ui->menu_2);
+  systemTrayIconMenu_->addAction(QStringLiteral("退出(&X)"), this,
+                                 &MainWindow::close);
+  systemTrayIcon_->setContextMenu(systemTrayIconMenu_);
+  connect(systemTrayIcon_, &QSystemTrayIcon::activated, this,
+          &MainWindow::on_systemTrayIcon_activated);
+  systemTrayIcon_->setToolTip(this->windowTitle());
+  systemTrayIcon_->setIcon(QIcon(":/images/dict.png"));
+  systemTrayIcon_->show();
   Dictionary::Load(this);
 }
 
@@ -32,6 +47,8 @@ MainWindow::~MainWindow() {
   delete ui;
   delete dictWebPage_;
   delete webChannel_;
+  delete systemTrayIcon_;
+  delete systemTrayIconMenu_;
 }
 
 void MainWindow::on_action_A_triggered() {
@@ -83,4 +100,29 @@ void MainWindow::on_comboBox_currentIndexChanged(const QString& text) {
   }
   QString info = QString("Time used:%1ms").arg(time.elapsed());
   statusBar()->showMessage(info);
+}
+
+void MainWindow::changeEvent(QEvent* e) {
+  if ((e->type() == QEvent::WindowStateChange) && this->isMinimized()) {
+    this->hide();
+  }
+  QMainWindow::changeEvent(e);
+}
+
+void MainWindow::on_systemTrayIcon_activated(
+    QSystemTrayIcon::ActivationReason reason) {
+  switch (reason) {
+    case QSystemTrayIcon::DoubleClick:
+    case QSystemTrayIcon::Trigger:
+      if (this->isVisible()) {
+        this->hide();
+      } else {
+        this->raise();
+        this->activateWindow();
+        this->showNormal();
+      }
+      break;
+    default:
+      break;
+  }
 }
