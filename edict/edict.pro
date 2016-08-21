@@ -52,19 +52,11 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/lzo/debug/lzo.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/lzo/liblzo.a
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../thirdparty/libs/ -lzlibstat
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../thirdparty/libs/ -lzlibstatd
-else:unix: LIBS += -L$$PWD/../thirdparty/libs/ -lzlibstat
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../thirdparty/libs/ -lzlib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../thirdparty/libs/ -lzlibd
 
-INCLUDEPATH += $$PWD/../thirdparty/libs
-INCLUDEPATH += $$PWD/../thirdparty/zlib-1.2.8
-DEPENDPATH += $$PWD/../thirdparty/libs
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/libzlibstat.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/libzlibstatd.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/zlibstat.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/zlibstatd.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../thirdparty/libs/libzlibstat.a
+INCLUDEPATH += $$PWD/../thirdparty/includes
+DEPENDPATH += $$PWD/../thirdparty/includes
 
 RESOURCES += \
     res.qrc
