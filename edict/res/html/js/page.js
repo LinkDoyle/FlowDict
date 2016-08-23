@@ -25,3 +25,18 @@ function clearArticles() {
     container.innerHTML = "";
     $('.sidebar-nav li:gt(0)').remove();
 }
+
+
+$(".sidebar-toggle").click(function(e) {
+    e.preventDefault();
+    if ($('span', this).hasClass("glyphicon-remove")) {
+        $('.sidebar-toggle span').addClass('animated fadeOut');
+        $('.sidebar-toggle span').removeClass('glyphicon-remove animated fadeOut');
+        $('.sidebar-toggle span').addClass('glyphicon-menu-right animated fadeIn');
+    } else {
+        $('.sidebar-toggle span').addClass('animated fadeOut');
+        $('.sidebar-toggle span').removeClass('glyphicon-menu-right animated fadeOut');
+        $('.sidebar-toggle span').addClass('glyphicon-remove animated fadeIn');
+    }
+    $("#wrapper").toggleClass("toggled");
+});

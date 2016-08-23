@@ -87,9 +87,8 @@ void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
   ui->comboBox->setCurrentIndex(pos);
 }
 
-void MainWindow::on_webEngineView_loadFinished(bool)
-{
-  if(ui->webEngineView->url().url() == QStringLiteral("qrc:/html/cover.htm")){
+void MainWindow::on_webEngineView_loadFinished(bool) {
+  if (ui->webEngineView->url().url() == QStringLiteral("qrc:/html/cover.htm")) {
     this->show();
   }
 }
@@ -106,6 +105,7 @@ void MainWindow::on_comboBox_currentIndexChanged(const QString& text) {
   for (const auto& dict : Dictionary::Get()) {
     article.clear();
     dict->getArticleText(text, article);
+    if(article.isEmpty()) continue;
     article.replace(rx, "\\\\1\\2");
     dictWebPage_->runJavaScript(QStringLiteral("addArticle(\"%1\",\"%2\");")
                                     .arg(dict->info().title, article));
@@ -126,25 +126,25 @@ void MainWindow::on_systemTrayIcon_activated(
   switch (reason) {
     case QSystemTrayIcon::DoubleClick:
     case QSystemTrayIcon::Trigger:
-      if (this->isVisible()) {
-        this->hide();
-      } else {
-        this->raise();
-        this->activateWindow();
-        this->showNormal();
+      if (isMinimized()) {
+        showNormal();
+      } else if (!isVisible()) {
+        show();
+        qApp->setActiveWindow(this);
       }
+      activateWindow();
+      raise();
       break;
     default:
       break;
   }
 }
 
-void MainWindow::on_comboBox_editTextChanged(const QString &text)
-{
-    const auto& dictionaries = Dictionary::Get();
-    if(dictionaries.isEmpty()) return;
-    QStringList keys = dictionaries[0]->keysWithPrefix(text, 15);
-    QCompleter *completer = new QCompleter(keys, this);
-    completer->setModel(new QStringListModel(keys, this));
-    ui->comboBox->setCompleter(completer);
+void MainWindow::on_comboBox_editTextChanged(const QString& text) {
+  const auto& dictionaries = Dictionary::Get();
+  if (dictionaries.isEmpty()) return;
+  QStringList keys = dictionaries[0]->keysWithPrefix(text, 15);
+  QCompleter* completer = new QCompleter(keys, this);
+  completer->setModel(new QStringListModel(keys, this));
+  ui->comboBox->setCompleter(completer);
 }

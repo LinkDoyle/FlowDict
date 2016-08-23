@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>411</width>
-    <height>295</height>
+    <width>563</width>
+    <height>443</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,9 @@
   <property name="windowIcon">
    <iconset>
     <normaloff>:/images/dict</normaloff>:/images/dict</iconset>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -50,7 +53,10 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="9,3">
+     <property name="spacing">
+      <number>12</number>
+     </property>
      <item>
       <widget class="QTableWidget" name="tableWidget">
        <property name="editTriggers">
@@ -78,6 +84,9 @@
      </item>
      <item>
       <widget class="QTextBrowser" name="textBrowser">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="documentTitle">
         <string/>
        </property>
