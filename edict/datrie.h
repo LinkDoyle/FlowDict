@@ -377,9 +377,14 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
       s = t;
       ++p;
       if (base(s) < 0) {
-        if (strcmp(p, tail_ - base(s) - 1) != 0) {
-          return v;
-        }
+        const CHAR* tail = tail_ - base(s) - 1;
+        while (*p != NULL && *p == *tail) {
+          ++p;
+          ++tail;
+        };
+        if (*p == NULL)
+          v.push_back(std::basic_string<CHAR>{prefix} + tail);
+        return v;
         break;
       }
     }
