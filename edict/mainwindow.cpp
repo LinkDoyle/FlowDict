@@ -11,9 +11,10 @@
 #include <QWebEngineView>
 #include <QWebChannel>
 #include <QMenu>
-#include <QCompleter>
+#include <QKeySequence>
 #include <QStringListModel>
 
+#include "CCompleter.h"
 #include "dialogabout.h"
 #include "dictmanager.h"
 #include "dictionary.h"
@@ -22,10 +23,28 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
+
+      caseSensitiveLabel_(new QLabel(QStringLiteral("区分大小写"))),
+      correctLabel_(new QLabel(QStringLiteral("智能拼写纠正"))),
+      reverseLookupLabel_(new QLabel(QStringLiteral("反向查找"))),
+      wildcardLabel_(new QLabel(QStringLiteral("使用通配符"))),
+
+      caseSensitiveAct_(new QAction(QStringLiteral("区分大小写"))),
+      changeSearchModeAct_(new QAction(QStringLiteral("切换查找模式"))),
+      correctAct_(new QAction(QStringLiteral("智能拼写纠正"))),
+      reverseLookupAct_(new QAction(QStringLiteral("反向查找"))),
+      wildcardAct_(new QAction(QStringLiteral("使用通配符"))),
+
+      completer_(new CCompleter),
+      wordCompleterList_(new QStringListModel),
+
       dictWebPage_(new DictWebPage),
       webChannel_(new QWebChannel),
-      systemTrayIcon_(new QSystemTrayIcon),
-      systemTrayIconMenu_(new QMenu) {
+
+      findInPageMenu_(new QMenu),
+      searchMenu_(new QMenu),
+      systemTrayIconMenu_(new QMenu),
+      systemTrayIcon_(new QSystemTrayIcon) {
   ui->setupUi(this);
 
   connect(ui->webEngineView, &QWebEngineView::loadFinished, this,
@@ -35,21 +54,98 @@ MainWindow::MainWindow(QWidget* parent)
   dictWebPage_->setUrl(QUrl("qrc:/html/page.htm"));
   dictWebPage_->setWebChannel(webChannel_);
 
-  systemTrayIconMenu_->addMenu(ui->menu);
-  systemTrayIconMenu_->addMenu(ui->menu_2);
-  systemTrayIconMenu_->addAction(QStringLiteral("退出(&X)"), this,
-                                 &MainWindow::close);
-  systemTrayIcon_->setContextMenu(systemTrayIconMenu_);
-  connect(systemTrayIcon_, &QSystemTrayIcon::activated, this,
-          &MainWindow::on_systemTrayIcon_activated);
-  systemTrayIcon_->setToolTip(this->windowTitle());
-  systemTrayIcon_->setIcon(QIcon(":/images/dict.png"));
-  systemTrayIcon_->show();
+  // Completer
+  completer_->setModel(wordCompleterList_);
+  completer_->setTarget(ui->comboBox);
+  // Search
+  {
+    clearStatusBarLabels();
+    ui->statusBar->addPermanentWidget(caseSensitiveLabel_);
+    ui->statusBar->addPermanentWidget(correctLabel_);
+    ui->statusBar->addPermanentWidget(reverseLookupLabel_);
+    ui->statusBar->addPermanentWidget(wildcardLabel_);
+
+    changeSearchModeAct_->setShortcut(QKeySequence::Find);
+    connect(changeSearchModeAct_, &QAction::triggered, this, [this]() {
+      clearStatusBarLabels();
+      if (ui->toolButton->menu() == searchMenu_) {
+        ui->label->setText(QStringLiteral("解释内查找"));
+        ui->toolButton->setMenu(findInPageMenu_);
+        reverseLookupLabel_->setVisible(reverseLookupAct_->isChecked());
+        caseSensitiveLabel_->setVisible(caseSensitiveAct_->isChecked());
+        completer_->setModel(wordCompleterList_);
+      } else if (ui->toolButton->menu() == findInPageMenu_) {
+        ui->label->setText(QStringLiteral("查找"));
+        ui->toolButton->setMenu(searchMenu_);
+        correctLabel_->setVisible(correctAct_->isChecked());
+        wildcardLabel_->setVisible(wildcardAct_->isChecked());
+        completer_->setModel(nullptr);
+      }
+      ui->comboBox->setFocus();
+    });
+
+    wildcardAct_->setCheckable(true);
+    wildcardAct_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_W));
+    connect(wildcardAct_, &QAction::toggled, wildcardLabel_,
+            &QLabel::setVisible);
+    correctAct_->setCheckable(true);
+    correctAct_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C));
+    connect(correctAct_, &QAction::toggled, correctLabel_, &QLabel::setVisible);
+    searchMenu_->addAction(wildcardAct_);
+    searchMenu_->addAction(correctAct_);
+    searchMenu_->addAction(changeSearchModeAct_);
+    ui->toolButton->setMenu(searchMenu_);
+
+    caseSensitiveAct_->setCheckable(true);
+    caseSensitiveAct_->setShortcut(
+        QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C));
+    connect(caseSensitiveAct_, &QAction::toggled, caseSensitiveLabel_,
+            &QLabel::setVisible);
+    reverseLookupAct_->setCheckable(true);
+    reverseLookupAct_->setShortcut(
+        QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
+    connect(reverseLookupAct_, &QAction::toggled, reverseLookupLabel_,
+            &QLabel::setVisible);
+    findInPageMenu_->addAction(caseSensitiveAct_);
+    findInPageMenu_->addAction(reverseLookupAct_);
+    findInPageMenu_->addAction(changeSearchModeAct_);
+  }
+
+  // TrayIcon
+  {
+    systemTrayIconMenu_->addMenu(ui->menu);
+    systemTrayIconMenu_->addMenu(ui->menu_2);
+    systemTrayIconMenu_->addAction(QStringLiteral("退出(&X)"), this,
+                                   &MainWindow::close);
+    systemTrayIcon_->setContextMenu(systemTrayIconMenu_);
+    connect(systemTrayIcon_, &QSystemTrayIcon::activated, this,
+            &MainWindow::on_systemTrayIcon_activated);
+    systemTrayIcon_->setToolTip(this->windowTitle());
+    systemTrayIcon_->setIcon(QIcon(":/images/dict.png"));
+  }
+
   Dictionary::Load(this);
 }
 
 MainWindow::~MainWindow() {
   delete ui;
+
+  delete caseSensitiveAct_;
+  delete changeSearchModeAct_;
+  delete correctAct_;
+  delete reverseLookupAct_;
+  delete wildcardAct_;
+
+  delete caseSensitiveLabel_;
+  delete correctLabel_;
+  delete reverseLookupLabel_;
+  delete wildcardLabel_;
+
+  delete completer_;
+  delete wordCompleterList_;
+
+  delete searchMenu_;
+  delete findInPageMenu_;
   delete dictWebPage_;
   delete webChannel_;
   delete systemTrayIcon_;
@@ -73,8 +169,23 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   if (!config.dump("config.json"))
     QMessageBox::warning(this, QStringLiteral("警告"),
                          "保存配置文件 config.json 失败!");
-
   event->accept();
+}
+
+void MainWindow::clearStatusBarLabels() const {
+  correctLabel_->hide();
+  wildcardLabel_->hide();
+  caseSensitiveLabel_->hide();
+  reverseLookupLabel_->hide();
+}
+
+void MainWindow::findInPage(const QString& text) const {
+  QWebEnginePage::FindFlags flags;
+  if (caseSensitiveAct_->isChecked())
+    flags.setFlag(QWebEnginePage::FindCaseSensitively);
+  if (reverseLookupAct_->isChecked())
+    flags.setFlag(QWebEnginePage::FindBackward);
+  ui->webEngineView->findText(text, flags);
 }
 
 void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
@@ -90,28 +201,8 @@ void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
 void MainWindow::on_webEngineView_loadFinished(bool) {
   if (ui->webEngineView->url().url() == QStringLiteral("qrc:/html/cover.htm")) {
     this->show();
+    systemTrayIcon_->show();
   }
-}
-
-void MainWindow::on_comboBox_currentIndexChanged(const QString& text) {
-  ui->webEngineView->setPage(dictWebPage_);
-  dictWebPage_->runJavaScript(QStringLiteral("clearArticles();"));
-  statusBar()->showMessage(QStringLiteral("查询中..."));
-  QTime time;
-  time.start();
-
-  QRegExp rx(R"(\\([\s\S])|(["\r\n]))");
-  QString article;
-  for (const auto& dict : Dictionary::Get()) {
-    article.clear();
-    dict->getArticleText(text, article);
-    if(article.isEmpty()) continue;
-    article.replace(rx, "\\\\1\\2");
-    dictWebPage_->runJavaScript(QStringLiteral("addArticle(\"%1\",\"%2\");")
-                                    .arg(dict->info().title, article));
-  }
-  QString info = QString("Time used:%1ms").arg(time.elapsed());
-  statusBar()->showMessage(info);
 }
 
 void MainWindow::changeEvent(QEvent* e) {
@@ -119,6 +210,31 @@ void MainWindow::changeEvent(QEvent* e) {
     this->hide();
   }
   QMainWindow::changeEvent(e);
+}
+
+void MainWindow::search(const QString& text) const {
+  if (ui->toolButton->menu() == searchMenu_) {
+    ui->webEngineView->setPage(dictWebPage_);
+    dictWebPage_->runJavaScript(QStringLiteral("clearArticles();"));
+    statusBar()->showMessage(QStringLiteral("查询中..."));
+    QTime time;
+    time.start();
+
+    QRegExp rx(R"(\\([\s\S])|(["\r\n]))");
+    QString article;
+    for (const auto& dict : Dictionary::Get()) {
+      article.clear();
+      dict->getArticleText(text, article);
+      if (article.isEmpty()) continue;
+      article.replace(rx, "\\\\1\\2");
+      dictWebPage_->runJavaScript(QStringLiteral("addArticle(\"%1\",\"%2\");")
+                                      .arg(dict->info().title, article));
+    }
+    QString info = QString("Time used:%1ms").arg(time.elapsed());
+    statusBar()->showMessage(info);
+  } else if (ui->toolButton->menu() == findInPageMenu_) {
+    findInPage(text);
+  }
 }
 
 void MainWindow::on_systemTrayIcon_activated(
@@ -140,11 +256,29 @@ void MainWindow::on_systemTrayIcon_activated(
   }
 }
 
+void MainWindow::on_comboBox_activated(const QString& text) {
+  completer_->completed();
+  search(text);
+}
+
 void MainWindow::on_comboBox_editTextChanged(const QString& text) {
-  const auto& dictionaries = Dictionary::Get();
-  if (dictionaries.isEmpty()) return;
-  QStringList keys = dictionaries[0]->keysWithPrefix(text, 15);
-  QCompleter* completer = new QCompleter(keys, this);
-  completer->setModel(new QStringListModel(keys, this));
-  ui->comboBox->setCompleter(completer);
+  if (ui->toolButton->menu() == searchMenu_) {
+    const auto& dictionaries = Dictionary::Get();
+    if (dictionaries.isEmpty()) return;
+
+    QStringList keys;
+    if(wildcardAct_->isChecked()) {
+      keys = dictionaries[0]->keysThatMatch(text, 15);
+    } else {
+      keys = dictionaries[0]->keysWithPrefix(text, 15);
+    }
+    wordCompleterList_->setStringList(keys);
+    completer_->complete();
+  } else if (ui->toolButton->menu() == findInPageMenu_) {
+    findInPage(text);
+  }
+}
+
+void MainWindow::on_toolButton_clicked() {
+  search(ui->comboBox->currentText());
 }

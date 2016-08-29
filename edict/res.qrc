@@ -2,6 +2,7 @@
     <qresource prefix="/images">
         <file alias="dict.png">res/dict.png</file>
         <file alias="dict.ico">res/dict.ico</file>
+        <file alias="search.png">res/search.png</file>
     </qresource>
     <qresource prefix="/html/js">
         <file alias="bootstrap.min.js">res/html/js/bootstrap.min.js</file>

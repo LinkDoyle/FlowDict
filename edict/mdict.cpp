@@ -33,6 +33,7 @@ class MDictReader : public Dictionary::IDictionary {
   virtual ~MDictReader();
 
   virtual QStringList keysWithPrefix(const QString &prefix, int max) const override;
+  virtual QStringList keysThatMatch(const QString &pattern, int max) const override;
   bool loadFile(const QString &filename,
                 std::function<void(int, int)> callback);
 
@@ -148,6 +149,16 @@ QStringList MDictReader::keysWithPrefix(const QString &prefix, int max) const {
   auto keys = index_reader_.keysWithPrefix(prefix.toUtf8().constData(), max);
   QStringList stringList;
   for (auto key : keys) {
+    stringList.push_back(QString::fromStdString(key));
+  }
+  return stringList;
+}
+QStringList MDictReader::keysThatMatch(const QString &prefix, int max) const {
+  auto keys = index_reader_.keysThatMatch(prefix.toUtf8().constData(), max);
+  QStringList stringList;
+  qDebug() << "keys:";
+  for (auto key : keys) {
+    qDebug() << QString::fromStdString(key);
     stringList.push_back(QString::fromStdString(key));
   }
   return stringList;
