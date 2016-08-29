@@ -26,7 +26,8 @@ void Load(QWidget* parent) {
             dialog->setWindowFlags(Qt::Window | Qt::WindowTitleHint);
             dialog->setMinimumWidth(400);
             dialog->setWindowTitle(QStringLiteral("Flow Dict"));
-            dialog->setWindowModality(Qt::WindowModal);
+            dialog->setWindowModality(Qt::ApplicationModal);
+            dialog->setModal(true);
             dialog->setRange(0, 101);
             dialog->setCancelButton(nullptr);
             dialog->show();
