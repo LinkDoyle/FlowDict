@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     dictionary.cpp \
     dictwebpage.cpp \
     ConfigParser.cpp \
-    mdict.cpp
+    mdict.cpp \
+    ccompleter.cpp
 
 HEADERS  += mainwindow.h \
     mdictparser.h \
@@ -31,7 +32,8 @@ HEADERS  += mainwindow.h \
     dictwebpage.h \
     datrie.h \
     ConfigParser.h \
-    mdict.h
+    mdict.h \
+    ccompleter.h
 
 FORMS    += mainwindow.ui \
     dialogabout.ui \
