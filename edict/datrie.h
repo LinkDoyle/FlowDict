@@ -335,8 +335,8 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
   // return the data using the parameter data.
   int retrieve(const CHAR* word, uint32_t& data) const {
     const CHAR* p = word - 1;
-    int s = 1;
-    int t;
+    int32_t s = 1;
+    int32_t t;
     do {
       ++p;
       t = base(s) + getIndex(*p);
@@ -369,8 +369,8 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
     if (max == 0) return v;
     if (max > 0) v.reserve(max);
     const CHAR* p = prefix;
-    int s = 1;
-    int t;
+    int32_t s = 1;
+    int32_t t;
     while (*p) {
       t = base(s) + getIndex(*p);
       if (check(t) != s) return v;
@@ -382,8 +382,7 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
           ++p;
           ++tail;
         };
-        if (*p == NULL)
-          v.push_back(std::basic_string<CHAR>{prefix} + tail);
+        if (*p == NULL) v.push_back(std::basic_string<CHAR>{prefix} + tail);
         return v;
         break;
       }
@@ -391,10 +390,18 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
     collect(s, std::basic_string<CHAR>(prefix), v, max);
     return v;
   }
-  //std::vector<std::basic_string<CHAR>> keysThatMatch(const CHAR* s, int max = -1);
+  std::vector<std::basic_string<CHAR>> keysThatMatch(const CHAR* pattern,
+                                                     int max = -1) const {
+    std::vector<std::basic_string<CHAR>> v;
+    if (max == 0) return v;
+    if (max > 0) v.reserve(max);
+    std::basic_string<CHAR> prefix;
+    collect(1, prefix, pattern, v, max);
+    return v;
+  }
 
  protected:
-  void collect(int node, std::basic_string<CHAR>& String,
+  void collect(int32_t node, std::basic_string<CHAR>& String,
                std::vector<std::basic_string<CHAR>>& v, int count) const {
     if (count == v.size()) return;
     if (base(node) < 0) {
@@ -407,11 +414,66 @@ class DATrieReader : public DATrieBase<CHAR, Alphabet> {
     }
     for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
          ++index) {
-      int next = base(node) + index + 2;
+      int32_t next = base(node) + index + 2;
       if (check(next) == node) {
         String.push_back(Alphabet::toChar(index));
         collect(next, String, v, count);
         String.pop_back();
+      }
+    }
+  }
+
+  CHAR getWildcard() const {
+    if (std::is_same_v<CHAR, char>)
+      return '?';
+    else if (std::is_same_v<CHAR, wchar_t>)
+      return L'?';
+    else if (std::is_same_v<CHAR, char16_t>)
+      return u'?';
+    else if (std::is_same_v<CHAR, char32_t>)
+      return U'?';
+    else
+      assert(false);
+    return 0;
+  }
+
+  void collect(int32_t node, std::basic_string<CHAR>& prefix,
+               const CHAR* pattern, std::vector<std::basic_string<CHAR>>& v,
+               int count) const {
+    if (count == v.size()) return;
+    if (base(node) < 0) {
+      const CHAR* tail = tail_ - base(node) - 1;
+      const CHAR* q = tail;
+      CHAR nextChar;
+      while ((nextChar = *pattern) && (*q != 0) &&
+             (nextChar == getWildcard() || nextChar == *q)) {
+        ++pattern;
+        ++q;
+      }
+      if (nextChar == 0 && *q == 0) v.push_back(prefix + tail);
+      return;
+    }
+    CHAR nextChar = *pattern;
+    if (nextChar == 0) {
+      if (check(base(node) + 1) == node) {
+        v.push_back(prefix);
+      }
+    } else if (nextChar == getWildcard()) {
+      for (uint32_t index = Alphabet::begin(); index != Alphabet::end();
+           ++index) {
+        int next = base(node) + index + 2;
+        if (check(next) == node) {
+          prefix.push_back(Alphabet::toChar(index));
+          collect(next, prefix, pattern + 1, v, count);
+          prefix.pop_back();
+        }
+      }
+    } else {
+      int32_t next = base(node) + getIndex(nextChar);
+      if (check(next) == node) {
+        prefix.push_back(nextChar);
+        collect(next, prefix, pattern + 1, v, count);
+        prefix.pop_back();
       }
     }
   }
