@@ -32,8 +32,10 @@ class MDictReader : public Dictionary::IDictionary {
   virtual const Info &info() const override { return info_; }
   virtual ~MDictReader();
 
-  virtual QStringList keysWithPrefix(const QString &prefix, int max) const override;
-  virtual QStringList keysThatMatch(const QString &pattern, int max) const override;
+  virtual QStringList keysWithPrefix(const QString &prefix,
+                                     int max) const override;
+  virtual QStringList keysThatMatch(const QString &pattern,
+                                    int max) const override;
   bool loadFile(const QString &filename,
                 std::function<void(int, int)> callback);
 
@@ -143,6 +145,20 @@ void MDictReader::getArticleText(const QString &headword, QString &text) const {
       recordInfo.recordSize);
 
   text = MdictParser::substituteStylesheet(text, styleSheets_);
+
+  QRegExp wordCrossLink("(href\\s*=\\s*[\"'])entry://([^#\"'/]+)(#?[^\"']*)",
+                        Qt::CaseInsensitive);
+  int pos = 0;
+  while (pos >= 0) {
+    pos = wordCrossLink.indexIn(text, pos);
+    if (pos < 0) break;
+    QString newLink =
+        wordCrossLink.cap(1) + "lookup://localhost/" + wordCrossLink.cap(2);
+    if (!wordCrossLink.cap(3).isEmpty())
+      newLink += QString("?anchor=") + wordCrossLink.cap(3).mid(1);
+    text.replace(pos, wordCrossLink.cap(0).size(), newLink);
+    pos += newLink.size();
+  }
 }
 
 QStringList MDictReader::keysWithPrefix(const QString &prefix, int max) const {

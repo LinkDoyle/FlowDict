@@ -189,13 +189,11 @@ void MainWindow::findInPage(const QString& text) const {
 }
 
 void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
-  // TODO: word through url
-  int pos = ui->comboBox->findText(url.host());
-  if (pos == -1) {
-    ui->comboBox->addItem(url.host());
-    pos = ui->comboBox->count() - 1;
+  QString word = url.fileName();
+  if(url.scheme() == "lookup") {
+    ui->comboBox->setEditText(word);
+    emit ui->comboBox->activated(word);
   }
-  ui->comboBox->setCurrentIndex(pos);
 }
 
 void MainWindow::on_webEngineView_loadFinished(bool) {
@@ -267,7 +265,7 @@ void MainWindow::on_comboBox_editTextChanged(const QString& text) {
     if (dictionaries.isEmpty()) return;
 
     QStringList keys;
-    if(wildcardAct_->isChecked()) {
+    if (wildcardAct_->isChecked()) {
       keys = dictionaries[0]->keysThatMatch(text, 15);
     } else {
       keys = dictionaries[0]->keysWithPrefix(text, 15);
