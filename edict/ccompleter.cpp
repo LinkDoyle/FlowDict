@@ -8,8 +8,7 @@
 #include <QScrollBar>
 #include <qDebug>
 
-CCompleter::CCompleter()
-    : view_(new QListView), target_(nullptr) {
+CCompleter::CCompleter() : view_(new QListView), target_(nullptr) {
   view_->hide();
   view_->setParent(0, Qt::Popup | Qt::FramelessWindowHint);
   view_->setFocusPolicy(Qt::NoFocus);
@@ -28,10 +27,7 @@ CCompleter::CCompleter()
   qApp->installEventFilter(this);
 }
 
-CCompleter::~CCompleter()
-{
-  delete view_;
-}
+CCompleter::~CCompleter() { delete view_; }
 
 bool CCompleter::eventFilter(QObject *obj, QEvent *event) {
   if (event->type() == QEvent::NonClientAreaMouseButtonPress) {
@@ -61,7 +57,6 @@ bool CCompleter::eventFilter(QObject *obj, QEvent *event) {
           default:
             break;
         }
-
         (static_cast<QObject *>(target_))->event(event);
         if (!target_->hasFocus()) {
           view_->hide();
@@ -96,7 +91,10 @@ void CCompleter::setTarget(QWidget *widget) {
 
 void CCompleter::complete() const {
   if (!target_) return;
-  if (view_->model()->rowCount() == 0) view_->hide();
+  if (view_->model()->rowCount() == 0) {
+    view_->hide();
+    return;
+  }
   int sizeRow = view_->sizeHintForRow(0);
   view_->setMaximumSize(target_->width(), sizeRow > 0 ? sizeRow * 10 : 0);
   view_->setMinimumSize(target_->width(), 0);
