@@ -175,11 +175,13 @@ class DATrieWriter : public DATrieBase<CHAR, Alphabet> {
                  uint64_t extraSize) const {
     FILE* pFile = fopen(filename, "wb");
     if (!pFile) return -1;
-    fwrite(&size_, sizeof(size_), 1, pFile);
+    uint32_t size = size_;
+    while (base_[size - 1] == 0 && check_[size - 1] == 0) --size;
+    fwrite(&size, sizeof(size), 1, pFile);
     fwrite(&pos_, sizeof(tailsize_), 1, pFile);
     fwrite(&pos_, sizeof(pos_), 1, pFile);
-    fwrite(base_, sizeof(*base_), size_, pFile);
-    fwrite(check_, sizeof(*check_), size_, pFile);
+    fwrite(base_, sizeof(*base_), size, pFile);
+    fwrite(check_, sizeof(*check_), size, pFile);
     fwrite(tail_, sizeof(*tail_), pos_, pFile);
     fwrite(&extraSize, sizeof(extraSize), 1, pFile);
     fwrite(extraData, sizeof(*extraData), extraSize, pFile);

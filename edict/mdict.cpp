@@ -15,7 +15,7 @@ namespace MDict {
 class Alphabet {
  public:
   static uint32_t toIndex(char c) {
-    assert(c >= ' ');
+    assert(static_cast<unsigned char>(c) >= ' ');
     assert(static_cast<unsigned char>(c) < 255);
     return static_cast<unsigned char>(c) - ' ';
   }
