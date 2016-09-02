@@ -4,10 +4,10 @@
 #include <algorithm>
 #include <QTextCodec>
 #include <QVector>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QDir>
-#include <QDebug>
+#include <QRegularExpression>
 #include "datrie.h"
 #include "mdictparser.h"
 namespace MDict {
@@ -36,6 +36,8 @@ class MDictReader : public Dictionary::IDictionary {
                                      int max) const override;
   virtual QStringList keysThatMatch(const QString &pattern,
                                     int max) const override;
+  virtual QStringList splitInfoFromText(QString text) const override;
+
   bool loadFile(const QString &filename,
                 std::function<void(int, int)> callback);
 
@@ -172,9 +174,7 @@ QStringList MDictReader::keysWithPrefix(const QString &prefix, int max) const {
 QStringList MDictReader::keysThatMatch(const QString &prefix, int max) const {
   auto keys = index_reader_.keysThatMatch(prefix.toUtf8().constData(), max);
   QStringList stringList;
-  qDebug() << "keys:";
   for (auto key : keys) {
-    qDebug() << QString::fromStdString(key);
     stringList.push_back(QString::fromStdString(key));
   }
   return stringList;
@@ -212,4 +212,16 @@ bool createDirectoryCache(const QString &dict_filename,
 
   return true;
 }
+
+QStringList MDictReader::splitInfoFromText(QString text) const {
+  QStringList stringList;
+  QRegularExpression rx(".*?<br>(.*?\\[.*?\\].*?)?(.*)");
+  QRegularExpressionMatch match = rx.match(text);
+  QString IPA = match.captured(1);
+  if (IPA.contains("Kingsoft Phonetic Plain")) IPA.replace("'", "\x35");
+  stringList.append(IPA);
+  stringList.append(match.captured(2).replace("<br>", ""));
+  return stringList;
+}
+
 }

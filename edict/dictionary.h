@@ -25,6 +25,7 @@ class IDictionary {
                                      int max = -1) const = 0;
   virtual QStringList keysThatMatch(const QString& pattern,
                                     int max = -1) const = 0;
+  virtual QStringList splitInfoFromText(QString text) const = 0;
 };
 
 QVector<QSharedPointer<IDictionary>>& Get();
