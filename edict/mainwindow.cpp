@@ -194,7 +194,7 @@ void MainWindow::findInPage(const QString& text) const {
 
 void MainWindow::on_dictWebPage_linkClicked(const QUrl& url) {
   QString word = url.fileName();
-  if(url.scheme() == "lookup") {
+  if (url.scheme() == "lookup") {
     ui->comboBox->setEditText(word);
     emit ui->comboBox->activated(word);
   }

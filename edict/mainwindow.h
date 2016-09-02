@@ -38,16 +38,16 @@ class MainWindow : public QMainWindow {
 
  private:
   DictWebPage *dictWebPage_;
-  QAction* caseSensitiveAct_;
-  QAction* changeSearchModeAct_;
-  QAction* correctAct_;
-  QAction* reverseLookupAct_;
-  QAction* wildcardAct_;
+  QAction *caseSensitiveAct_;
+  QAction *changeSearchModeAct_;
+  QAction *correctAct_;
+  QAction *reverseLookupAct_;
+  QAction *wildcardAct_;
   CCompleter *completer_;
-  QLabel* caseSensitiveLabel_;
-  QLabel* correctLabel_;
-  QLabel* reverseLookupLabel_;
-  QLabel* wildcardLabel_;
+  QLabel *caseSensitiveLabel_;
+  QLabel *correctLabel_;
+  QLabel *reverseLookupLabel_;
+  QLabel *wildcardLabel_;
   QMenu *findInPageMenu_;
   QMenu *searchMenu_;
   QMenu *systemTrayIconMenu_;

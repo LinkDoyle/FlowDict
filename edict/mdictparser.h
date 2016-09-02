@@ -161,6 +161,5 @@ class MdictParser {
   int encrypted_;
   bool rtl_;
 };
-
 }
 #endif  // MDICTPARSER_H

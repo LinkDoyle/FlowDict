@@ -23,7 +23,7 @@ class DictManager : public QDialog {
 
   void on_toolButton_2_clicked();
 
-private:
+ private:
   Ui::DictManager *ui;
 };
 

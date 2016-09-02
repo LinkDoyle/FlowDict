@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QListView>
 
-class CCompleter : public QObject{
+class CCompleter : public QObject {
   Q_OBJECT
 
  public:

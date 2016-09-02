@@ -35,7 +35,8 @@ void Load(QWidget* parent) {
           dialog->setLabelText(
               QStringLiteral(
                   "正在更新词典\"%1\"的索引缓存（当前已花时：%2 s）...")
-                  .arg(d.title, QString().setNum(time.elapsed() / 1000.f, 'f', 1)));
+                  .arg(d.title,
+                       QString().setNum(time.elapsed() / 1000.f, 'f', 1)));
           dialog->setValue(currentCount * 100 / totalCount);
           QApplication::processEvents();
         });

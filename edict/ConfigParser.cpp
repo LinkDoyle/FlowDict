@@ -99,9 +99,9 @@ Config::Dictionary::Dictionary() {}
 
 Config::Dictionary::Dictionary(const QString& title, const QString& type,
                                const QString& path)
-  : title(title), type(type), path(path) {}
+    : title(title), type(type), path(path) {}
 
-bool Config::Dictionary::operator==(const Config::Dictionary &rhs) const
-{
-    return rhs.path == this->path && rhs.title == this->title && rhs.type == this->type;
+bool Config::Dictionary::operator==(const Config::Dictionary& rhs) const {
+  return rhs.path == this->path && rhs.title == this->title &&
+         rhs.type == this->type;
 }

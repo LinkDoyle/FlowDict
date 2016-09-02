@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
   if (!config.load("config.json")) {
     QMessageBox::warning(nullptr, QStringLiteral("错误"),
                          QStringLiteral("读取配置文件 config.json 失败！"));
-	return -1;
+    return -1;
   }
   QApplication app(argc, argv);
   QTranslator qt;
