@@ -123,7 +123,9 @@ bool MdictParser::checkAdler32(const char *buffer, unsigned int len,
 QString MdictParser::toUtf16(const char *fromCode, const char *from,
                              size_t fromSize) {
   QTextCodec *codec = QTextCodec::codecForName(fromCode);
-  return codec->toUnicode(from, fromSize);
+  QString r = codec->toUnicode(from, fromSize);
+  r.truncate(r.indexOf(QChar::Null));
+  return r;
 }
 bool MdictParser::decryptHeadWordIndex(char *buffer, qint64 len) {
   RIPEMD128 ripemd;
@@ -554,7 +556,6 @@ QString &MdictParser::substituteStylesheet(
   QRegExp rx("`(\\d+)`");
   QString endStyle;
   int pos = 0;
-
   while ((pos = rx.indexIn(article, pos)) != -1) {
     int styleId = rx.cap(1).toInt();
     StyleSheets::const_iterator iter = styleSheets.find(styleId);
