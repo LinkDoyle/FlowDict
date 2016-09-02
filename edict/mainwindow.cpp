@@ -20,6 +20,10 @@
 #include "dictionary.h"
 #include "ConfigParser.h"
 
+#ifdef Q_OS_WIN
+#include <Windows.h>
+#endif
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
@@ -200,12 +204,18 @@ void MainWindow::on_webEngineView_loadFinished(bool) {
   if (ui->webEngineView->url().url() == QStringLiteral("qrc:/html/cover.htm")) {
     this->show();
     systemTrayIcon_->show();
+#ifdef Q_OS_WIN
+    ::SetProcessWorkingSetSize(::GetCurrentProcess(), -1, -1);
+#endif
   }
 }
 
 void MainWindow::changeEvent(QEvent* e) {
   if ((e->type() == QEvent::WindowStateChange) && this->isMinimized()) {
     this->hide();
+#ifdef Q_OS_WIN
+    ::SetProcessWorkingSetSize(::GetCurrentProcess(), -1, -1);
+#endif
   }
   QMainWindow::changeEvent(e);
 }
