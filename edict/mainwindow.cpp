@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget* parent)
       changeSearchModeAct_(new QAction(QStringLiteral("切换查找模式"))),
       correctAct_(new QAction(QStringLiteral("智能拼写纠正"))),
       reverseLookupAct_(new QAction(QStringLiteral("反向查找"))),
+      showSimpleDefinitionAct_(new QAction(QStringLiteral("显示简明释义"))),
       wildcardAct_(new QAction(QStringLiteral("使用通配符"))),
 
       completer_(new CCompleter),
@@ -61,6 +62,7 @@ MainWindow::MainWindow(QWidget* parent)
   // Completer
   completer_->setModel(wordCompleterList_);
   completer_->setTarget(ui->comboBox);
+  completer_->setSimpleDefinitionVisible(true);
   // Search
   {
     clearStatusBarLabels();
@@ -95,8 +97,12 @@ MainWindow::MainWindow(QWidget* parent)
     correctAct_->setCheckable(true);
     correctAct_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C));
     connect(correctAct_, &QAction::toggled, correctLabel_, &QLabel::setVisible);
+    showSimpleDefinitionAct_->setCheckable(true);
+    showSimpleDefinitionAct_->setChecked(true);
+    connect(showSimpleDefinitionAct_, &QAction::toggled, completer_, &CCompleter::setSimpleDefinitionVisible);
     searchMenu_->addAction(wildcardAct_);
     searchMenu_->addAction(correctAct_);
+    searchMenu_->addAction(showSimpleDefinitionAct_);
     searchMenu_->addAction(changeSearchModeAct_);
     ui->toolButton->setMenu(searchMenu_);
 
@@ -138,6 +144,7 @@ MainWindow::~MainWindow() {
   delete changeSearchModeAct_;
   delete correctAct_;
   delete reverseLookupAct_;
+  delete showSimpleDefinitionAct_;
   delete wildcardAct_;
 
   delete caseSensitiveLabel_;

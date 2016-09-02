@@ -42,6 +42,7 @@ class MainWindow : public QMainWindow {
   QAction *changeSearchModeAct_;
   QAction *correctAct_;
   QAction *reverseLookupAct_;
+  QAction *showSimpleDefinitionAct_;
   QAction *wildcardAct_;
   CCompleter *completer_;
   QLabel *caseSensitiveLabel_;

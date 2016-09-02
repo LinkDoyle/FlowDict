@@ -2,19 +2,67 @@
 
 #include <QAbstractItemModel>
 #include <QListView>
+#include <QStringListModel>
 #include <QComboBox>
 #include <QApplication>
 #include <QKeyEvent>
 #include <QScrollBar>
-#include <qDebug>
+#include <QPainter>
+#include <QStyledItemDelegate>
+#include <QTextDocument>
 
-CCompleter::CCompleter() : view_(new QListView), target_(nullptr) {
+#include "dictionary.h"
+
+class HTMLDelegate : public QStyledItemDelegate {
+ protected:
+  void paint(QPainter *painter, const QStyleOptionViewItem &option,
+             const QModelIndex &index) const;
+};
+
+void HTMLDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+                         const QModelIndex &index) const {
+  QStyleOptionViewItemV4 options = option;
+  initStyleOption(&options, index);
+  painter->save();
+
+  const auto &dictionaries = Dictionary::Get();
+  QString Html = options.text;
+  if (!dictionaries.isEmpty()) {
+    QString articleText;
+    dictionaries[0]->getArticleText(Html, articleText);
+    QStringList Infos = dictionaries[0]->splitInfoFromText(articleText);
+    for (auto info : Infos) {
+      Html += '\t';
+      Html += info;
+    }
+  }
+
+  QTextDocument doc;
+  doc.setHtml(Html);
+
+  options.text = "";
+  options.widget->style()->drawControl(QStyle::CE_ItemViewItem, &options,
+                                       painter);
+  painter->translate(options.rect.left(), options.rect.top());
+  QRect clip(0, 0, doc.idealWidth(), options.rect.height());
+  doc.drawContents(painter, clip);
+  painter->restore();
+}
+
+CCompleter::CCompleter()
+    : view_(new QListView),
+      target_(nullptr),
+      oldItemDelete_(view_->itemDelegate()),
+      styledItemDelegate_(new HTMLDelegate) {
   view_->hide();
   view_->setParent(0, Qt::Popup | Qt::FramelessWindowHint);
   view_->setFocusPolicy(Qt::NoFocus);
   view_->setFocusProxy(target_);
   view_->setEditTriggers(QAbstractItemView::NoEditTriggers);
   view_->setSelectionMode(QAbstractItemView::SingleSelection);
+  view_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  view_->setItemDelegate(styledItemDelegate_);
+
   connect(view_, &QListView::activated, this, [this](const QModelIndex &index) {
     QComboBox *target = qobject_cast<QComboBox *>(target_);
     if (target_) {
@@ -27,7 +75,10 @@ CCompleter::CCompleter() : view_(new QListView), target_(nullptr) {
   qApp->installEventFilter(this);
 }
 
-CCompleter::~CCompleter() { delete view_; }
+CCompleter::~CCompleter() {
+  delete view_;
+  delete styledItemDelegate_;
+}
 
 bool CCompleter::eventFilter(QObject *obj, QEvent *event) {
   if (event->type() == QEvent::NonClientAreaMouseButtonPress) {
@@ -95,6 +146,7 @@ void CCompleter::complete() const {
     view_->hide();
     return;
   }
+
   int sizeRow = view_->sizeHintForRow(0);
   view_->setMaximumSize(target_->width(), sizeRow > 0 ? sizeRow * 10 : 0);
   view_->setMinimumSize(target_->width(), 0);
@@ -108,3 +160,10 @@ void CCompleter::complete() const {
 }
 
 void CCompleter::completed() const { view_->hide(); }
+
+void CCompleter::setSimpleDefinitionVisible(bool visible) {
+  if (visible)
+    view_->setItemDelegate(styledItemDelegate_);
+  else
+    view_->setItemDelegate(oldItemDelete_);
+}
