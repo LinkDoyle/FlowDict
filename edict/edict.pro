@@ -11,29 +11,31 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = edict
 TEMPLATE = app
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    mdictparser.cpp \
-    ripemd.cc \
-    dialogabout.cpp \
-    dictmanager.cpp \
-    dictionary.cpp \
-    dictwebpage.cpp \
-    ConfigParser.cpp \
-    mdict.cpp \
-    ccompleter.cpp
+SOURCES  += main.cpp\
+            mainwindow.cpp \
+            mdictparser.cpp \
+            ripemd.cc \
+            dialogabout.cpp \
+            dictmanager.cpp \
+            dictionary.cpp \
+            dictwebpage.cpp \
+            ConfigParser.cpp \
+            mdict.cpp \
+            ccompleter.cpp \
+            flowhelper.cpp
 
 HEADERS  += mainwindow.h \
-    mdictparser.h \
-    ripemd.hh \
-    dialogabout.h \
-    dictmanager.h \
-    dictionary.h \
-    dictwebpage.h \
-    datrie.h \
-    ConfigParser.h \
-    mdict.h \
-    ccompleter.h
+            mdictparser.h \
+            ripemd.hh \
+            dialogabout.h \
+            dictmanager.h \
+            dictionary.h \
+            dictwebpage.h \
+            datrie.h \
+            ConfigParser.h \
+            mdict.h \
+            ccompleter.h \
+            flowhelper.h
 
 FORMS    += mainwindow.ui \
     dialogabout.ui \
