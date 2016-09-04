@@ -16,6 +16,7 @@
 
 #include "CCompleter.h"
 #include "dialogabout.h"
+#include "dialogoption.h"
 #include "dictmanager.h"
 #include "dictionary.h"
 #include "ConfigParser.h"
@@ -42,6 +43,7 @@ MainWindow::MainWindow(QWidget* parent)
 
       completer_(new CCompleter),
       wordCompleterList_(new QStringListModel),
+      historyList_(new QStringListModel),
 
       dictWebPage_(new DictWebPage),
       webChannel_(new QWebChannel),
@@ -51,6 +53,7 @@ MainWindow::MainWindow(QWidget* parent)
       systemTrayIconMenu_(new QMenu),
       systemTrayIcon_(new QSystemTrayIcon) {
   ui->setupUi(this);
+  const Config& config = Config::Get();
 
   connect(ui->webEngineView, &QWebEngineView::loadFinished, this,
           &MainWindow::on_webEngineView_loadFinished);
@@ -63,8 +66,14 @@ MainWindow::MainWindow(QWidget* parent)
   completer_->setModel(wordCompleterList_);
   completer_->setTarget(ui->comboBox);
   completer_->setSimpleDefinitionVisible(true);
+
   // Search
   {
+    ui->comboBox->setModel(historyList_);
+    historyList_->setStringList(config.history);
+
+    Config::SearchOptions options = config.searchOptions;
+
     clearStatusBarLabels();
     ui->statusBar->addPermanentWidget(caseSensitiveLabel_);
     ui->statusBar->addPermanentWidget(correctLabel_);
@@ -94,12 +103,18 @@ MainWindow::MainWindow(QWidget* parent)
     wildcardAct_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_W));
     connect(wildcardAct_, &QAction::toggled, wildcardLabel_,
             &QLabel::setVisible);
+    wildcardAct_->setChecked(options.wildcardEnable);
+
     correctAct_->setCheckable(true);
     correctAct_->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C));
     connect(correctAct_, &QAction::toggled, correctLabel_, &QLabel::setVisible);
+    correctAct_->setChecked(options.autoCorrect);
+
     showSimpleDefinitionAct_->setCheckable(true);
-    showSimpleDefinitionAct_->setChecked(true);
-    connect(showSimpleDefinitionAct_, &QAction::toggled, completer_, &CCompleter::setSimpleDefinitionVisible);
+    connect(showSimpleDefinitionAct_, &QAction::toggled, completer_,
+            &CCompleter::setSimpleDefinitionVisible);
+    showSimpleDefinitionAct_->setChecked(options.showSimpleDefinition);
+
     searchMenu_->addAction(wildcardAct_);
     searchMenu_->addAction(correctAct_);
     searchMenu_->addAction(showSimpleDefinitionAct_);
@@ -111,11 +126,15 @@ MainWindow::MainWindow(QWidget* parent)
         QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C));
     connect(caseSensitiveAct_, &QAction::toggled, caseSensitiveLabel_,
             &QLabel::setVisible);
+    caseSensitiveAct_->setChecked(options.caseSensitive);
+
     reverseLookupAct_->setCheckable(true);
     reverseLookupAct_->setShortcut(
         QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_R));
     connect(reverseLookupAct_, &QAction::toggled, reverseLookupLabel_,
             &QLabel::setVisible);
+    reverseLookupAct_->setChecked(options.reverseLookup);
+
     findInPageMenu_->addAction(caseSensitiveAct_);
     findInPageMenu_->addAction(reverseLookupAct_);
     findInPageMenu_->addAction(changeSearchModeAct_);
@@ -154,6 +173,7 @@ MainWindow::~MainWindow() {
 
   delete completer_;
   delete wordCompleterList_;
+  delete historyList_;
 
   delete searchMenu_;
   delete findInPageMenu_;
@@ -164,19 +184,29 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_action_A_triggered() {
-  DialogAbout* dialog = new DialogAbout;
+  DialogAbout* dialog = new DialogAbout(this);
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->exec();
 }
 
 void MainWindow::on_action_M_triggered() {
-  DictManager* dialog = new DictManager;
+  DictManager* dialog = new DictManager(this);
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->exec();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
   Config& config = Config::Get();
+
+  Config::SearchOptions& options = config.searchOptions;
+  options.caseSensitive = caseSensitiveAct_->isChecked();
+  options.autoCorrect = correctAct_->isChecked();
+  options.reverseLookup = reverseLookupAct_->isChecked();
+  options.showSimpleDefinition = showSimpleDefinitionAct_->isChecked();
+  options.wildcardEnable = wildcardAct_->isChecked();
+
+  config.history = historyList_->stringList();
+
   if (!config.dump("config.json"))
     QMessageBox::warning(this, QStringLiteral("警告"),
                          "保存配置文件 config.json 失败!");
@@ -271,23 +301,36 @@ void MainWindow::on_systemTrayIcon_activated(
   }
 }
 
-void MainWindow::on_comboBox_activated(const QString& text) {
+void MainWindow::on_comboBox_activated(int index) {
+  QComboBox* combox = ui->comboBox;
+  const QString& text = combox->itemText(index);
+  if(index != 0) {
+    //combox->removeItem(index);
+    combox->insertItem(0, text);
+    combox->setCurrentIndex(0);
+  }
+  int itemCount = combox->count();
+  for (int i = itemCount - 1; i >= Config::Get().historyMaxCount; --i)
+    combox->removeItem(i);
   completer_->completed();
   search(text);
 }
 
 void MainWindow::on_comboBox_editTextChanged(const QString& text) {
   if (ui->toolButton->menu() == searchMenu_) {
-    const auto& dictionaries = Dictionary::Get();
-    if (dictionaries.isEmpty()) return;
-
-    QStringList keys;
-    if (wildcardAct_->isChecked()) {
-      keys = dictionaries[0]->keysThatMatch(text, 15);
+    if (text.isEmpty()) {
+      const QStringListModel* model =
+          qobject_cast<QStringListModel*>(ui->comboBox->model());
+      wordCompleterList_->setStringList(model->stringList());
     } else {
-      keys = dictionaries[0]->keysWithPrefix(text, 15);
+      const auto& dictionaries = Dictionary::Get();
+      if (dictionaries.isEmpty()) return;
+
+      QStringList keys = wildcardAct_->isChecked()
+                             ? dictionaries[0]->keysThatMatch(text, 15)
+                             : dictionaries[0]->keysWithPrefix(text, 15);
+      wordCompleterList_->setStringList(keys);
     }
-    wordCompleterList_->setStringList(keys);
     completer_->complete();
   } else if (ui->toolButton->menu() == findInPageMenu_) {
     findInPage(text);
@@ -296,4 +339,12 @@ void MainWindow::on_comboBox_editTextChanged(const QString& text) {
 
 void MainWindow::on_toolButton_clicked() {
   search(ui->comboBox->currentText());
+}
+
+void MainWindow::on_action_O_triggered() {
+  DialogOption* dialog = new DialogOption(this);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  if (dialog->exec() == QDialog::Accepted) {
+    historyList_->setStringList(Config::Get().history);
+  }
 }
