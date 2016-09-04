@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+class QAction;
+
 namespace Ui {
 class DictManager;
 }
@@ -16,15 +18,13 @@ class DictManager : public QDialog {
 
  private slots:
   void on_toolButton_clicked();
-
   void on_buttonBox_accepted();
-
   void on_tableWidget_cellClicked(int row, int column);
-
   void on_toolButton_2_clicked();
 
- private:
+private:
   Ui::DictManager *ui;
+  QAction *exploreAct_;
 };
 
 #endif  // DICTMANAGER_H

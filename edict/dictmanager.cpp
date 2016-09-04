@@ -1,16 +1,21 @@
 ﻿#include "dictmanager.h"
 #include "ui_dictmanager.h"
 
-#include <algorithm>
+#include <QAction>
 #include <QFileDialog>
 #include <QMessageBox>
+
+#include <algorithm>
 
 #include "ConfigParser.h"
 #include "dictionary.h"
 #include "mdictparser.h"
+#include "flowhelper.h"
 
 DictManager::DictManager(QWidget* parent)
-    : QDialog(parent), ui(new Ui::DictManager) {
+    : QDialog(parent),
+      ui(new Ui::DictManager),
+      exploreAct_(new QAction(QStringLiteral("在资源管理器中显示"))) {
   ui->setupUi(this);
 
   Config& config = Config::Get();
@@ -24,9 +29,19 @@ DictManager::DictManager(QWidget* parent)
     tableWiget->setItem(row, 2, new QTableWidgetItem(dict.path));
     ++row;
   }
-}
 
-DictManager::~DictManager() { delete ui; }
+  QTableWidget* tableWidget = ui->tableWidget;
+  connect(exploreAct_, &QAction::triggered, [tableWidget]() {
+    const QString& path =
+        tableWidget->item(tableWidget->currentItem()->row(), 2)->text();
+    FlowHelper::showInFolder(path);
+  });
+  tableWidget->addAction(exploreAct_);
+}
+DictManager::~DictManager() {
+  delete ui;
+  delete exploreAct_;
+}
 
 void DictManager::on_toolButton_clicked() {
   QString filename = QFileDialog::getOpenFileName();
