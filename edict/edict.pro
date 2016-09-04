@@ -22,7 +22,8 @@ SOURCES  += main.cpp\
             ConfigParser.cpp \
             mdict.cpp \
             ccompleter.cpp \
-            flowhelper.cpp
+            flowhelper.cpp \
+            dialogoption.cpp
 
 HEADERS  += mainwindow.h \
             mdictparser.h \
@@ -35,11 +36,13 @@ HEADERS  += mainwindow.h \
             ConfigParser.h \
             mdict.h \
             ccompleter.h \
-            flowhelper.h
+            flowhelper.h \
+            dialogoption.h
 
 FORMS    += mainwindow.ui \
     dialogabout.ui \
-    dictmanager.ui
+    dictmanager.ui \
+    dialogoption.ui
 
 INCLUDEPATH += $$PWD/../thirdparty
 
