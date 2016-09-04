@@ -12,6 +12,11 @@ namespace Dictionary {
 static QVector<QSharedPointer<IDictionary>> Dictionaries;
 QVector<QSharedPointer<IDictionary>>& Get() { return Dictionaries; }
 
+QSharedPointer<IDictionary> GetConciseDict() {
+  if(Dictionaries.isEmpty()) return QSharedPointer<IDictionary>{};
+  return Dictionaries[Config::Get().conciseDictIndex()];
+}
+
 void Load(QWidget* parent) {
   const auto config_dictionaries = Config::Get().getDictionaries();
   Dictionaries.clear();
@@ -49,4 +54,5 @@ void Load(QWidget* parent) {
   }
   if (dialog) delete dialog;
 }
+
 }

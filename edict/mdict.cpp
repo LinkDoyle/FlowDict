@@ -36,7 +36,7 @@ class MDictReader : public Dictionary::IDictionary {
                                      int max) const override;
   virtual QStringList keysThatMatch(const QString &pattern,
                                     int max) const override;
-  virtual QStringList splitInfoFromText(QString text) const override;
+  virtual QStringList splitInfoFromText(QString text, const QString& pattern) const override;
 
   bool loadFile(const QString &filename,
                 std::function<void(int, int)> callback);
@@ -213,9 +213,9 @@ bool createDirectoryCache(const QString &dict_filename,
   return true;
 }
 
-QStringList MDictReader::splitInfoFromText(QString text) const {
+QStringList MDictReader::splitInfoFromText(QString text, const QString& pattern) const {
   QStringList stringList;
-  QRegularExpression rx(".*?<br>(.*?\\[.*?\\].*?)?(.*)");
+  QRegularExpression rx(pattern);
   QRegularExpressionMatch match = rx.match(text);
   QString IPA = match.captured(1);
   if (IPA.contains("Kingsoft Phonetic Plain")) IPA.replace("'", "\x35");

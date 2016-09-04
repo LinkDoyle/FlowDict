@@ -11,6 +11,7 @@
 #include <QStyledItemDelegate>
 #include <QTextDocument>
 
+#include "ConfigParser.h"
 #include "dictionary.h"
 
 class HTMLDelegate : public QStyledItemDelegate {
@@ -25,12 +26,13 @@ void HTMLDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
   initStyleOption(&options, index);
   painter->save();
 
-  const auto &dictionaries = Dictionary::Get();
   QString Html = options.text;
-  if (!dictionaries.isEmpty()) {
-    QString articleText;
-    dictionaries[0]->getArticleText(Html, articleText);
-    QStringList Infos = dictionaries[0]->splitInfoFromText(articleText);
+  QString articleText;
+  auto dict = Dictionary::GetConciseDict();
+  if (!dict.isNull()) {
+    dict->getArticleText(Html, articleText);
+    QStringList Infos =
+        dict->splitInfoFromText(articleText, Config::Get().conciseDictRegex());
     for (auto info : Infos) {
       Html += '\t';
       Html += info;
@@ -99,8 +101,9 @@ bool CCompleter::eventFilter(QObject *obj, QEvent *event) {
             break;
           }
           case Qt::Key_Down:
-          case Qt::Key_Up:
-            break;
+          case Qt::Key_Up: {
+            return false;
+          }
           case Qt::Key_End:
           case Qt::Key_Home:
             if (key->modifiers() & Qt::ControlModifier) return false;
