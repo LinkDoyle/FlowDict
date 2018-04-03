@@ -2,57 +2,116 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Flow Dict Page</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/page.css" rel="stylesheet">
-    <link href="css/simple-sidebar.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flow Dict Page</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/page.css" rel="stylesheet">
+  <link href="css/simple-sidebar.css" rel="stylesheet">
 </head>
 
 <body>
-    <div id="wrapper" class="">
-        <!-- Sidebar -->
-        <div id="sidebar-wrapper">
-            <ul class="sidebar-nav">
-                <li class="sidebar-brand">
-                    <a href="#">
-                        Flow Dict
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <div class="sidebar-toggle">
-            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-        </div>
-        <!-- /#sidebar-wrapper -->
-        <!-- Page Content -->
-        <div id="page-content-wrapper">
-            <div class="container-fluid">
-                <div id="container" class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                </div>
-            </div>
-        </div>
-        <!-- /#page-content-wrapper -->
+  <div id="wrapper" class="">
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+      <ul class="sidebar-nav">
+        <li class="sidebar-brand">
+          <a href="#">Flow Dict</a>
+        </li>
+      </ul>
     </div>
-    <template id="tpl-article">
-        <div class="panel panel-default">
-            <div id="article_heading{{index}}" class="panel-heading" role="tab">
-                <h4 class="panel-title">
+    <div class="sidebar-toggle">
+      <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </div>
+    <!-- /#sidebar-wrapper -->
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+      <div id="word-star-alert" style="display: none;">
+        <div class="alert alert-success animated fadeIn" style="">
+          <button type="button" class="close" data-dismiss="alert">×</button>
+          <span class="glyphicon glyphicon-ok"></span><span></span>
+        </div>
+      </div>
+      <div class="container-fluid">
+        <div id="word-star" class="btn-toolbar" role="toolbar">
+          <p id="current-word">Flow Dict</p>
+          <div id="word-star-btn" class="btn-group btn-group-xs">
+            <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-star-empty"></span></button>
+            <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-star-empty"></span></button>
+            <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-star-empty"></span></button>
+            <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-star-empty"></span></button>
+            <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-star-empty"></span></button>
+          </div>
+        </div>
+        <div class="modal fade" id="starEditor" tabindex="-1" role="dialog" aria-labelledby="noteEditorLabel" aria-hidden="true">
+          <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="noteEditorLabel">编辑生词</h4>
+              </div>
+              <template id="tpl-wordbook-list">
+                <div class="list-group-item">
+                  <a class="word-book-checkbox" href="javascript:void(0)"><span class="glyphicon glyphicon-{{checked}}"></span></a>
+                  <span contentEditable='false'>{{name}}</span>
+                  <a class="word-book-editname" href="javascript:void(0)"><span class="glyphicon glyphicon-pencil" style="float: right;" data-toggle="tooltip" data-placement="right" title="修改名称"></span></a>
+                </div>
+              </template>
+              <div class="list-group-item">
+                <a class="word-book-add" href="javascript:void(0)">
+                  <span class="glyphicon glyphicon-plus-sign"></span>
+                </a>
+                <span>创建生词本</span>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger">从生词本中删除</button>
+                <button id="wordbook-list-save" type="button" class="btn btn-primary" data-dismiss="modal">完成</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="container" class="panel-group" id="accordion" role="tablist" aria-multiselectable="true" style="padding-top: 10px">
+        </div>
+      </div>
+    </div>
+    <!-- /#page-content-wrapper -->
+  </div>
+  <template id="tpl-article">
+    <div class="panel panel-default">
+      <div id="article_heading{{index}}" class="panel-heading" role="tab">
+        <h4 class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#accordion" data-target="#article{{index}}">{{name}}</a>
               </h4>
-            </div>
-            <div id="article{{index}}" class="panel-collapse collapse">
-                <div class="panel-body">
-                    {{text}}
-                </div>
-            </div>
+      </div>
+      <div id="article{{index}}" class="panel-collapse collapse">
+        <div class="panel-body">
+          {{text}}
         </div>
-    </template>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/page.js"></script>
+      </div>
+    </div>
+  </template>
+  <div class="modal fade" id="noteEditor" tabindex="-1" role="dialog" aria-labelledby="noteEditorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="noteEditorLabel">编辑笔记（支持 Markdown ）</h4>
+        </div>
+        <div class="modal-body">
+          <textarea style="width: 100%" rows="10"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/marked.min.js"></script>
+  <script src="js/page.js"></script>
 </body>
 
 </html>

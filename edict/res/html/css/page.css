@@ -1,7 +1,37 @@
 .panel-title {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none;    
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+#current-word {
+    float: left;
+    margin-right: 10px;
+    font-size: 24px;
+}
+
+#word-star .btn-group {
+    margin-top: 6px;
+}
+
+#word-star-alert {
+    display: inline-block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 2000;
+    text-align: center;
+    pointer-events: none;
+}
+
+#word-star-alert .alert {
+    display: inline-block;
+    margin-bottom: 0;
+    pointer-events: initial;
+    min-width: 250px;
+    text-align: left;
 }
