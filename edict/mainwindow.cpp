@@ -260,6 +260,8 @@ void MainWindow::changeEvent(QEvent* e) {
 void MainWindow::search(const QString& text) const {
   if (ui->toolButton->menu() == searchMenu_) {
     ui->webEngineView->setPage(dictWebPage_);
+    dictWebPage_->runJavaScript(QStringLiteral("setCurrentWord(\"%1\", %2);")
+                                    .arg(text).arg(3));
     dictWebPage_->runJavaScript(QStringLiteral("clearArticles();"));
     statusBar()->showMessage(QStringLiteral("查询中..."));
     QTime time;
@@ -277,6 +279,12 @@ void MainWindow::search(const QString& text) const {
     }
     QString info = QString("Time used:%1ms").arg(time.elapsed());
     statusBar()->showMessage(info);
+
+    // Online searching
+    dictWebPage_->runJavaScript(QStringLiteral("addYodao();"));
+
+    // Add Word Note
+    dictWebPage_->runJavaScript(QStringLiteral("addWordNote(\"%1\");").arg("Test"));
   } else if (ui->toolButton->menu() == findInPageMenu_) {
     findInPage(text);
   }
