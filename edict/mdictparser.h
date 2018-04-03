@@ -17,7 +17,7 @@
 
 #include "datrie.h"
 
-namespace Mdict {
+namespace MDict {
 using std::string;
 using std::vector;
 using std::pair;
@@ -160,27 +160,6 @@ class MdictParser {
   int numberTypeSize_;
   int encrypted_;
   bool rtl_;
-};
-
-template <typename CHAR>
-class Alphabet {
- public:
-  static uint32_t toIndex(CHAR c) { return c - 'a'; }
-  static CHAR toChar(uint32_t index) { return index + 'a'; }
-  static uint32_t begin() { return 0; }
-  static uint32_t end() { return 'z' - 'a' + 1; }
-};
-
-class MdictReader {
- public:
-  bool loadFile(const QString& filename);
-  void getArticleText(const QString& headword, QString& text);
-  typedef std::map<QString, MdictParser::RecordInfo> Index;
-
- private:
-  QPointer<QFile> file_;
-  QString encoding_;
-  std::map<QString, MdictParser::RecordInfo> index_;
 };
 }
 #endif  // MDICTPARSER_H

@@ -2,5 +2,30 @@
     <qresource prefix="/images">
         <file alias="dict.png">res/dict.png</file>
         <file alias="dict.ico">res/dict.ico</file>
+        <file alias="search.png">res/search.png</file>
+    </qresource>
+    <qresource prefix="/html/js">
+        <file alias="bootstrap.min.js">res/html/js/bootstrap.min.js</file>
+        <file alias="jquery.min.js">res/html/js/jquery.min.js</file>
+        <file alias="page.js">res/html/js/page.js</file>
+        <file alias="marked.min.js">res/html/js/marked.min.js</file>
+    </qresource>
+    <qresource prefix="/html/css">
+        <file alias="bootstrap.min.css">res/html/css/bootstrap.min.css</file>
+        <file alias="bootstrap-theme.min.css">res/html/css/bootstrap-theme.min.css</file>
+        <file alias="cover.css">res/html/css/cover.css</file>
+        <file alias="simple-sidebar.css">res/html/css/simple-sidebar.css</file>
+        <file alias="page.css">res/html/css/page.css</file>
+    </qresource>
+    <qresource prefix="/html/fonts">
+        <file alias="glyphicons-halflings-regular.eot">res/html/fonts/glyphicons-halflings-regular.eot</file>
+        <file alias="glyphicons-halflings-regular.svg">res/html/fonts/glyphicons-halflings-regular.svg</file>
+        <file alias="glyphicons-halflings-regular.ttf">res/html/fonts/glyphicons-halflings-regular.ttf</file>
+        <file alias="glyphicons-halflings-regular.woff">res/html/fonts/glyphicons-halflings-regular.woff</file>
+        <file alias="glyphicons-halflings-regular.woff2">res/html/fonts/glyphicons-halflings-regular.woff2</file>
+    </qresource>
+    <qresource prefix="/html">
+        <file alias="page.htm">res/html/page.htm</file>
+        <file alias="cover.htm">res/html/cover.htm</file>
     </qresource>
 </RCC>

@@ -1,17 +1,20 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
+
 #include <QApplication>
-#include <QTranslator>
+#include <QMessageBox>
 
-#include "config.h"
-
-int main(int argc, char *argv[]) {
+#include "ConfigParser.h"
+int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
-  QTranslator qt;
-  qt.load("qt_zh_CN");
-  app.installTranslator(&qt);
-  app.setStyle("Fusion");
-  MainWindow w;
-  w.show();
 
+  Config& config = Config::Get();
+  if (!config.load("config.json")) {
+    QMessageBox::warning(nullptr, QStringLiteral("错误"),
+                         QStringLiteral("读取配置文件 config.json 失败！"));
+    return -1;
+  }
+
+  app.setStyle(config.basicStyle);
+  MainWindow w;
   return app.exec();
 }

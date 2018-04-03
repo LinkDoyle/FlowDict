@@ -75,3 +75,4 @@ Thumbs.db
 /build/*
 /tests/*
 /etc/*
+/thirdparty/libs

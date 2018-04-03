@@ -10,30 +10,41 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = edict
 TEMPLATE = app
+VERSION = 0.2.0
+DEFINES += FLOW_DICT_VERSION_STRING=\\\"0.2.0\\\"
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    mdictparser.cpp \
-    ripemd.cc \
-    dialogabout.cpp \
-    dictmanager.cpp \
-    dictionary.cpp \
-    dictwebpage.cpp \
-    ConfigParser.cpp
+SOURCES  += main.cpp\
+            mainwindow.cpp \
+            mdictparser.cpp \
+            ripemd.cc \
+            dialogabout.cpp \
+            dictmanager.cpp \
+            dictionary.cpp \
+            dictwebpage.cpp \
+            ConfigParser.cpp \
+            mdict.cpp \
+            ccompleter.cpp \
+            flowhelper.cpp \
+            dialogoption.cpp
 
 HEADERS  += mainwindow.h \
-    mdictparser.h \
-    ripemd.hh \
-    dialogabout.h \
-    dictmanager.h \
-    dictionary.h \
-    dictwebpage.h \
-    datrie.h \
-    ConfigParser.h
+            mdictparser.h \
+            ripemd.hh \
+            dialogabout.h \
+            dictmanager.h \
+            dictionary.h \
+            dictwebpage.h \
+            datrie.h \
+            ConfigParser.h \
+            mdict.h \
+            ccompleter.h \
+            flowhelper.h \
+            dialogoption.h
 
 FORMS    += mainwindow.ui \
     dialogabout.ui \
-    dictmanager.ui
+    dictmanager.ui \
+    dialogoption.ui
 
 INCLUDEPATH += $$PWD/../thirdparty
 
@@ -50,19 +61,18 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/lzo/debug/lzo.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/lzo/liblzo.a
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../thirdparty/libs/ -lzlibstat
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../thirdparty/libs/ -lzlibstatd
-else:unix: LIBS += -L$$PWD/../thirdparty/libs/ -lzlibstat
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../thirdparty/zlib/release/ -lzlib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../thirdparty/zlib/debug/ -lzlib
+else:unix: LIBS += -L$$OUT_PWD/../thirdparty/zlib/ -lzlib
 
-INCLUDEPATH += $$PWD/../thirdparty/libs
-INCLUDEPATH += $$PWD/../thirdparty/zlib-1.2.8
-DEPENDPATH += $$PWD/../thirdparty/libs
+INCLUDEPATH += $$PWD/../thirdparty/zlib
+DEPENDPATH += $$PWD/../thirdparty/zlib
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/libzlibstat.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/libzlibstatd.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/zlibstat.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../thirdparty/libs/zlibstatd.lib
-else:unix: PRE_TARGETDEPS += $$PWD/../thirdparty/libs/libzlibstat.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/zlib/release/libzlib.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/zlib/debug/libzlib.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/zlib/release/zlib.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/zlib/debug/zlib.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../thirdparty/zlib/libzlib.a
 
 RESOURCES += \
     res.qrc
