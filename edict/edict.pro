@@ -10,6 +10,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = edict
 TEMPLATE = app
+VERSION = 0.2.0
+DEFINES += FLOW_DICT_VERSION_STRING=\\\"0.2.0\\\"
 
 SOURCES  += main.cpp\
             mainwindow.cpp \
